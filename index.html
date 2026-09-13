@@ -1,0 +1,4542 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>面具之下：失名之夜</title>
+  <link rel="icon" href="data:,">
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #f6efe2;
+      --muted: rgba(246, 239, 226, 0.68);
+      --gold: #e6bd6d;
+      --gold-bright: #ffd98c;
+      --blue: #244e84;
+      --blue-deep: #07111f;
+      --red: #8b2530;
+      --panel: rgba(7, 13, 23, 0.9);
+      --panel-soft: rgba(14, 23, 37, 0.78);
+      --line: rgba(255, 222, 155, 0.22);
+      --success: #91d4b3;
+      --danger: #ff8d8d;
+      --ease: cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #05080d;
+      color: var(--ink);
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", system-ui, sans-serif;
+    }
+
+    button, input, textarea { font: inherit; }
+    button { color: inherit; }
+
+    #stage {
+      width: 100vw;
+      height: 100vh;
+      min-height: 620px;
+    }
+
+    .game-shell {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      isolation: isolate;
+      background: #08101b;
+    }
+
+    .scene-bg {
+      position: absolute;
+      inset: 0;
+      background-position: center;
+      background-size: cover;
+      transform: scale(1.015);
+      animation: scene-in 260ms var(--ease) both;
+    }
+
+    .scene-bg::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(180deg, rgba(2, 5, 10, 0.2), transparent 26%, transparent 62%, rgba(2, 5, 10, 0.76)),
+        radial-gradient(circle at center, transparent 40%, rgba(2, 5, 10, 0.22) 100%);
+    }
+
+    @keyframes scene-in {
+      from { opacity: 0; transform: scale(1.025); }
+      to { opacity: 1; transform: scale(1.015); }
+    }
+
+    .top-hud {
+      position: absolute;
+      z-index: 20;
+      top: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 20px 24px;
+      pointer-events: none;
+    }
+
+    .case-mark,
+    .objective-chip,
+    .progress-chip {
+      pointer-events: auto;
+      border: 1px solid var(--line);
+      background: rgba(6, 12, 21, 0.76);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.24);
+    }
+
+    .case-mark {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 198px;
+      padding: 10px 14px;
+      border-radius: 10px;
+    }
+
+    .case-number {
+      display: grid;
+      place-items: center;
+      width: 36px;
+      height: 36px;
+      border: 1px solid rgba(255, 221, 153, 0.42);
+      border-radius: 50%;
+      color: var(--gold-bright);
+      font-family: Georgia, serif;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+    }
+
+    .case-copy strong,
+    .objective-chip strong {
+      display: block;
+      margin-bottom: 3px;
+      font-size: 13px;
+      letter-spacing: 0.06em;
+    }
+
+    .case-copy span,
+    .objective-chip span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .objective-chip {
+      max-width: 460px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      text-align: center;
+    }
+
+    .progress-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 12px;
+    }
+
+    .hud-evidence-button {
+      pointer-events: auto;
+      flex: 0 0 auto;
+    }
+
+    .progress-dots {
+      display: flex;
+      gap: 5px;
+    }
+
+    .progress-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .progress-dot.done {
+      background: var(--gold);
+      box-shadow: 0 0 10px rgba(230, 189, 109, 0.7);
+    }
+
+    .scene-title {
+      position: absolute;
+      z-index: 8;
+      left: 28px;
+      bottom: 205px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: rgba(255,255,255,0.88);
+      text-shadow: 0 2px 12px #000;
+      pointer-events: none;
+    }
+
+    .scene-title::before {
+      content: "";
+      width: 34px;
+      height: 1px;
+      background: var(--gold);
+    }
+
+    .scene-title span {
+      font-size: 12px;
+      letter-spacing: 0.28em;
+    }
+
+    .hotspot {
+      --size: 44px;
+      position: absolute;
+      z-index: 15;
+      left: var(--x);
+      top: var(--y);
+      width: var(--size);
+      height: var(--size);
+      margin: calc(var(--size) / -2);
+      padding: 0;
+      border: 1px solid rgba(255, 222, 160, 0.78);
+      border-radius: 50%;
+      background: rgba(10, 18, 30, 0.42);
+      box-shadow:
+        0 0 0 7px rgba(230, 189, 109, 0.1),
+        0 0 24px rgba(230, 189, 109, 0.34);
+      cursor: pointer;
+      transition: transform 180ms ease-out, background 180ms ease-out, border-color 180ms ease-out;
+      animation: hotspot-pulse 1.8s ease-in-out infinite;
+    }
+
+    .hotspot::before,
+    .hotspot::after {
+      content: "";
+      position: absolute;
+      background: var(--gold-bright);
+      opacity: 0.92;
+    }
+
+    .hotspot::before {
+      width: 14px;
+      height: 2px;
+      left: 14px;
+      top: 20px;
+    }
+
+    .hotspot::after {
+      width: 2px;
+      height: 14px;
+      left: 20px;
+      top: 14px;
+    }
+
+    .hotspot-label {
+      position: absolute;
+      top: 50%;
+      left: calc(100% + 12px);
+      width: max-content;
+      max-width: 170px;
+      padding: 6px 9px;
+      transform: translateY(-50%);
+      border-radius: 6px;
+      background: rgba(4, 9, 16, 0.88);
+      color: #fff5dc;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 150ms ease-out, transform 150ms ease-out;
+    }
+
+    .hotspot:hover,
+    .hotspot:focus-visible {
+      transform: scale(1.08);
+      background: rgba(122, 83, 25, 0.68);
+      outline: none;
+    }
+
+    .hotspot:hover .hotspot-label,
+    .hotspot:focus-visible .hotspot-label {
+      opacity: 1;
+      transform: translate(2px, -50%);
+    }
+
+    .hotspot.inspected {
+      border-color: rgba(145, 212, 179, 0.82);
+      box-shadow: 0 0 0 6px rgba(145, 212, 179, 0.08);
+      animation: none;
+    }
+
+    .hotspot.inspected::before,
+    .hotspot.inspected::after {
+      background: var(--success);
+    }
+
+    @keyframes hotspot-pulse {
+      0%, 100% { box-shadow: 0 0 0 5px rgba(230, 189, 109, 0.08), 0 0 18px rgba(230, 189, 109, 0.22); }
+      50% { box-shadow: 0 0 0 10px rgba(230, 189, 109, 0.02), 0 0 28px rgba(230, 189, 109, 0.48); }
+    }
+
+    .dialogue-wrap {
+      position: absolute;
+      z-index: 30;
+      left: 24px;
+      right: 24px;
+      bottom: 24px;
+      min-height: 158px;
+      display: grid;
+      grid-template-columns: 118px 1fr auto;
+      align-items: stretch;
+      border: 1px solid rgba(255, 222, 160, 0.26);
+      border-radius: 14px;
+      background:
+        linear-gradient(135deg, rgba(15, 27, 44, 0.96), rgba(5, 10, 18, 0.94));
+      box-shadow:
+        0 22px 70px rgba(0,0,0,0.48),
+        inset 0 1px rgba(255,255,255,0.05);
+      backdrop-filter: blur(18px);
+      animation: dialogue-in 220ms var(--ease) both;
+    }
+
+    @keyframes dialogue-in {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .portrait {
+      position: relative;
+      overflow: hidden;
+      border-right: 1px solid var(--line);
+      border-radius: 14px 0 0 14px;
+      background-color: #101a2a;
+      background-repeat: no-repeat;
+      background-size: 400% auto;
+      background-position: 0% 7%;
+    }
+
+    .portrait::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 55%, rgba(4, 9, 16, 0.82));
+      pointer-events: none;
+    }
+
+    .portrait.sprite {
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at 50% 42%, rgba(245, 224, 170, 0.16), transparent 44%),
+        #0c1624;
+    }
+
+    .sprite-mark {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      place-items: center;
+      width: 64px;
+      height: 52px;
+      border: 2px solid var(--gold);
+      border-radius: 58% 42% 55% 45%;
+      color: var(--gold-bright);
+      font-family: Georgia, serif;
+      font-size: 24px;
+      transform: rotate(-5deg);
+      box-shadow: 0 0 24px rgba(230,189,109,.22);
+    }
+
+    .dialogue-copy {
+      min-width: 0;
+      padding: 20px 22px 18px;
+    }
+
+    .speaker-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 23px;
+      margin-bottom: 10px;
+    }
+
+    .speaker-name {
+      color: var(--gold-bright);
+      font-weight: 800;
+      font-size: 14px;
+      letter-spacing: 0.08em;
+    }
+
+    .speaker-line {
+      width: 32px;
+      height: 1px;
+      background: rgba(230,189,109,.45);
+    }
+
+    .dialogue-text {
+      max-width: 940px;
+      margin: 0;
+      font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+      font-size: clamp(16px, 1.5vw, 21px);
+      line-height: 1.65;
+      letter-spacing: 0.025em;
+      text-shadow: 0 2px 12px rgba(0,0,0,.5);
+    }
+
+    .dialogue-actions {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+      width: 132px;
+      padding: 16px;
+      border-left: 1px solid var(--line);
+    }
+
+    .dialogue-counter {
+      color: rgba(255,255,255,.38);
+      font-family: Georgia, serif;
+      font-size: 11px;
+      letter-spacing: .12em;
+      text-align: center;
+    }
+
+    .ui-button,
+    .advance-button,
+    .next-scene-button,
+    .association-button {
+      min-height: 42px;
+      border: 1px solid rgba(255,222,160,.28);
+      border-radius: 8px;
+      background: rgba(255,255,255,.055);
+      cursor: pointer;
+      transition: transform 150ms ease-out, background 150ms ease-out, border-color 150ms ease-out;
+    }
+
+    .ui-button:hover,
+    .advance-button:hover,
+    .next-scene-button:hover,
+    .association-button:hover {
+      background: rgba(230,189,109,.14);
+      border-color: rgba(255,222,160,.62);
+    }
+
+    .ui-button:active,
+    .advance-button:active,
+    .next-scene-button:active,
+    .association-button:active {
+      transform: scale(.98);
+    }
+
+    .advance-button {
+      background: linear-gradient(135deg, rgba(139,37,48,.92), rgba(95,23,32,.92));
+      border-color: rgba(255,178,153,.34);
+      font-weight: 800;
+    }
+
+    .advance-button::after { content: "  ›"; }
+
+    .investigate-tip {
+      position: absolute;
+      z-index: 18;
+      left: 50%;
+      bottom: 178px;
+      transform: translateX(-50%);
+      padding: 9px 14px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(5,10,18,.78);
+      color: rgba(255,255,255,.78);
+      font-size: 12px;
+      backdrop-filter: blur(12px);
+    }
+
+    .next-scene-button {
+      position: absolute;
+      z-index: 24;
+      right: 28px;
+      bottom: 204px;
+      min-width: 250px;
+      padding: 12px 18px;
+      border-color: rgba(145,212,179,.48);
+      background: rgba(17,76,55,.82);
+      box-shadow: 0 12px 35px rgba(0,0,0,.3);
+      font-weight: 800;
+      animation: dialogue-in 220ms var(--ease) both;
+    }
+
+    .next-scene-button::after { content: "  →"; }
+
+    .evidence-backdrop,
+    .modal-backdrop {
+      position: absolute;
+      z-index: 50;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 28px;
+      background: rgba(2, 5, 10, 0.68);
+      backdrop-filter: blur(10px);
+      animation: fade-in 180ms ease-out both;
+    }
+
+    @keyframes fade-in {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .evidence-book,
+    .hook-card,
+    .chapter-card {
+      width: min(880px, 92vw);
+      max-height: min(720px, 86vh);
+      overflow: auto;
+      border: 1px solid rgba(255,222,160,.3);
+      border-radius: 18px;
+      background:
+        linear-gradient(145deg, rgba(19,32,51,.98), rgba(6,12,21,.98));
+      box-shadow: 0 32px 100px rgba(0,0,0,.6);
+      animation: modal-in 220ms var(--ease) both;
+    }
+
+    @keyframes modal-in {
+      from { opacity: 0; transform: scale(.97) translateY(8px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .book-header,
+    .hook-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 20px 22px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .book-header h2,
+    .hook-header h2,
+    .chapter-card h2 {
+      margin: 0;
+      font-family: Georgia, "STSong", serif;
+      font-size: 24px;
+      letter-spacing: .06em;
+    }
+
+    .close-button {
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .evidence-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      padding: 20px 22px;
+    }
+
+    .evidence-card {
+      min-height: 118px;
+      padding: 14px;
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 10px;
+      background: rgba(255,255,255,.035);
+    }
+
+    .evidence-card strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--gold-bright);
+      font-size: 14px;
+    }
+
+    .evidence-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.65;
+    }
+
+    .association-zone {
+      margin: 0 22px 22px;
+      padding: 18px;
+      border: 1px dashed rgba(145,212,179,.35);
+      border-radius: 12px;
+      background: rgba(40,100,75,.08);
+    }
+
+    .association-zone h3 {
+      margin: 0 0 6px;
+      font-size: 14px;
+    }
+
+    .association-zone p {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .association-button {
+      width: 100%;
+      padding: 11px 14px;
+      background: rgba(34,93,70,.46);
+      border-color: rgba(145,212,179,.36);
+      text-align: left;
+    }
+
+    .association-button + .association-button { margin-top: 8px; }
+
+    .empty-evidence {
+      grid-column: 1 / -1;
+      padding: 60px 20px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .hook-card { width: min(680px, 92vw); }
+
+    .hook-body {
+      padding: 26px;
+    }
+
+    .hook-question {
+      margin: 0 0 22px;
+      font-family: Georgia, "STSong", serif;
+      font-size: clamp(21px, 2.3vw, 30px);
+      line-height: 1.55;
+    }
+
+    .hook-note {
+      margin: -10px 0 18px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .hook-input {
+      width: 100%;
+      min-height: 118px;
+      resize: vertical;
+      padding: 15px;
+      border: 1px solid rgba(255,222,160,.24);
+      border-radius: 10px;
+      outline: none;
+      background: rgba(0,0,0,.22);
+      color: #fff8e9;
+      line-height: 1.7;
+    }
+
+    .hook-input:focus {
+      border-color: rgba(255,217,140,.72);
+      box-shadow: 0 0 0 3px rgba(230,189,109,.08);
+    }
+
+    .hook-submit {
+      width: 100%;
+      margin-top: 14px;
+      padding: 13px 16px;
+      border: 1px solid rgba(255,222,160,.32);
+      border-radius: 9px;
+      background: linear-gradient(135deg, #8b2530, #60202a);
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .hook-submit:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+    }
+
+    .chapter-card {
+      width: min(640px, 90vw);
+      padding: 34px;
+      text-align: center;
+    }
+
+    .chapter-kicker {
+      display: block;
+      margin-bottom: 12px;
+      color: var(--gold);
+      font-size: 12px;
+      letter-spacing: .28em;
+    }
+
+    .chapter-card p {
+      max-width: 500px;
+      margin: 18px auto 24px;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+
+    .chapter-card button {
+      min-width: 210px;
+      padding: 13px 20px;
+      border: 1px solid rgba(255,222,160,.34);
+      border-radius: 9px;
+      background: linear-gradient(135deg, #8b2530, #60202a);
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .deduction-card {
+      width: min(760px, 92vw);
+      padding: 30px;
+      border: 1px solid rgba(255,222,160,.34);
+      border-radius: 18px;
+      background: linear-gradient(150deg, rgba(17,29,48,.98), rgba(4,9,17,.98));
+      box-shadow: 0 30px 90px rgba(0,0,0,.65);
+      animation: modal-in 220ms var(--ease) both;
+    }
+
+    .deduction-card small {
+      color: var(--gold);
+      font-weight: 800;
+      letter-spacing: .24em;
+    }
+
+    .deduction-card h2 {
+      margin: 10px 0 8px;
+      font-family: Georgia, "STSong", serif;
+      font-size: clamp(25px, 3.4vw, 38px);
+    }
+
+    .deduction-card > p {
+      margin: 0 0 22px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .deduction-options {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .deduction-option {
+      min-height: 116px;
+      padding: 18px;
+      border: 1px solid rgba(87,171,221,.35);
+      border-radius: 10px;
+      background: linear-gradient(160deg, rgba(29,56,84,.85), rgba(10,22,39,.9));
+      text-align: left;
+      cursor: pointer;
+      transition: transform 140ms var(--ease), border-color 140ms ease, background 140ms ease;
+    }
+
+    .deduction-option:hover,
+    .deduction-option:focus-visible {
+      transform: translateY(-3px);
+      border-color: var(--gold);
+      background: linear-gradient(160deg, rgba(57,73,87,.92), rgba(26,34,43,.96));
+      outline: none;
+    }
+
+    .deduction-option strong,
+    .deduction-option span { display: block; }
+    .deduction-option strong { margin-bottom: 8px; color: #fff4d8; font-size: 17px; }
+    .deduction-option span { color: var(--muted); font-size: 12px; line-height: 1.55; }
+
+    .title-screen {
+      display: grid;
+      place-items: center;
+      padding: 28px;
+    }
+
+    .title-screen .scene-bg::after {
+      background:
+        linear-gradient(90deg, rgba(3,7,12,.92) 0%, rgba(3,7,12,.68) 45%, rgba(3,7,12,.22) 100%),
+        linear-gradient(180deg, rgba(3,7,12,.22), rgba(3,7,12,.76));
+    }
+
+    .title-panel {
+      position: relative;
+      z-index: 5;
+      width: min(780px, 88vw);
+      margin-right: 28vw;
+      padding: 38px 42px;
+      border-left: 2px solid var(--gold);
+      background: linear-gradient(90deg, rgba(4,9,16,.82), rgba(4,9,16,.16));
+      text-shadow: 0 3px 20px #000;
+      animation: dialogue-in 260ms var(--ease) both;
+    }
+
+    .title-case {
+      display: block;
+      margin-bottom: 16px;
+      color: var(--gold);
+      font-size: 12px;
+      letter-spacing: .32em;
+    }
+
+    .title-panel h1 {
+      margin: 0;
+      font-family: Georgia, "STSong", serif;
+      font-size: clamp(38px, 5.5vw, 76px);
+      line-height: 1.05;
+      letter-spacing: .08em;
+    }
+
+    .title-panel h1 small {
+      display: block;
+      margin-top: 10px;
+      color: rgba(255,255,255,.72);
+      font-family: "Microsoft YaHei", sans-serif;
+      font-size: .25em;
+      font-weight: 500;
+      letter-spacing: .38em;
+    }
+
+    .title-panel p {
+      max-width: 600px;
+      margin: 24px 0 28px;
+      color: rgba(255,255,255,.72);
+      line-height: 1.85;
+    }
+
+    .start-button {
+      min-width: 210px;
+      padding: 14px 22px;
+      border: 1px solid rgba(255,220,150,.5);
+      border-radius: 8px;
+      background: linear-gradient(135deg, rgba(139,37,48,.96), rgba(89,22,31,.96));
+      box-shadow: 0 12px 35px rgba(0,0,0,.36);
+      font-weight: 800;
+      letter-spacing: .08em;
+      cursor: pointer;
+      transition: transform 150ms ease-out, filter 150ms ease-out;
+    }
+
+    .start-button:hover { filter: brightness(1.12); transform: translateY(-1px); }
+    .start-button:active { transform: translateY(0) scale(.98); }
+
+    .title-meta {
+      display: inline-block;
+      margin-left: 16px;
+      color: rgba(255,255,255,.48);
+      font-size: 11px;
+    }
+
+    /* Variant 2: permanent notebook rails */
+    .variant-notebook {
+      display: grid;
+      grid-template-columns: 238px minmax(0, 1fr) 270px;
+      padding: 14px;
+      gap: 12px;
+      background: #0b1018;
+    }
+
+    .variant-notebook .scene-bg {
+      inset: 14px 282px 14px 250px;
+      border-radius: 12px;
+      overflow: hidden;
+      transform: none;
+    }
+
+    .variant-notebook .top-hud { display: none; }
+
+    .notebook-rail {
+      position: relative;
+      z-index: 35;
+      height: 100%;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 12px;
+      background: #111a27;
+      box-shadow: 0 16px 50px rgba(0,0,0,.28);
+    }
+
+    .notebook-left { grid-column: 1; }
+    .notebook-right { grid-column: 3; }
+
+    .rail-header {
+      padding: 18px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+
+    .rail-header small {
+      color: var(--gold);
+      font-size: 10px;
+      letter-spacing: .18em;
+    }
+
+    .rail-header h2 {
+      margin: 7px 0 0;
+      font-family: Georgia, "STSong", serif;
+      font-size: 19px;
+    }
+
+    .chapter-list {
+      padding: 14px;
+    }
+
+    .chapter-step {
+      display: grid;
+      grid-template-columns: 24px 1fr;
+      gap: 10px;
+      padding: 10px 8px;
+      color: rgba(255,255,255,.45);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .chapter-step.active { color: #fff; }
+    .chapter-step.done { color: var(--success); }
+
+    .step-index {
+      display: grid;
+      place-items: center;
+      width: 22px;
+      height: 22px;
+      border: 1px solid currentColor;
+      border-radius: 50%;
+      font-size: 10px;
+    }
+
+    .rail-objective {
+      margin: 6px 14px;
+      padding: 12px;
+      border-left: 2px solid var(--gold);
+      background: rgba(230,189,109,.06);
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.65;
+    }
+
+    .mini-evidence-list {
+      height: calc(100% - 74px);
+      overflow: auto;
+      padding: 12px;
+    }
+
+    .mini-evidence {
+      padding: 11px;
+      border-bottom: 1px solid rgba(255,255,255,.065);
+    }
+
+    .mini-evidence strong {
+      display: block;
+      margin-bottom: 4px;
+      color: #fff0ce;
+      font-size: 12px;
+    }
+
+    .mini-evidence span {
+      color: rgba(255,255,255,.48);
+      font-size: 10px;
+      line-height: 1.5;
+    }
+
+    .variant-notebook .dialogue-wrap {
+      left: 266px;
+      right: 298px;
+      bottom: 28px;
+      min-height: 142px;
+      grid-template-columns: 94px 1fr 110px;
+    }
+
+    .variant-notebook .dialogue-copy { padding: 17px 18px; }
+    .variant-notebook .dialogue-text { font-size: clamp(14px, 1.25vw, 18px); }
+    .variant-notebook .dialogue-actions { width: 110px; padding: 12px; }
+    .variant-notebook .scene-title { left: 270px; bottom: 188px; }
+    .variant-notebook .investigate-tip { bottom: 32px; }
+    .variant-notebook .next-scene-button { right: 306px; bottom: 184px; }
+    .variant-notebook .hotspot-label { opacity: 1; }
+
+    .title-screen.variant-notebook {
+      grid-template-columns: 1fr;
+      place-items: center;
+      padding: 28px;
+      gap: 0;
+    }
+
+    .title-screen.variant-notebook .scene-bg {
+      inset: 0;
+      border-radius: 0;
+      transform: scale(1.015);
+    }
+
+    /* Variant 3: cinematic minimal shell */
+    .variant-cinematic .scene-bg::after {
+      background:
+        linear-gradient(180deg, rgba(2,5,10,.34), transparent 30%, transparent 70%, rgba(2,5,10,.8)),
+        radial-gradient(circle at 50% 45%, transparent 36%, rgba(2,5,10,.28));
+    }
+
+    .variant-cinematic .top-hud {
+      padding: 22px 28px;
+    }
+
+    .variant-cinematic .objective-chip,
+    .variant-cinematic .progress-chip {
+      display: none;
+    }
+
+    .variant-cinematic .case-mark {
+      min-width: 0;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+      backdrop-filter: none;
+      text-shadow: 0 2px 12px #000;
+    }
+
+    .variant-cinematic .case-number { background: rgba(5,10,18,.55); }
+
+    .variant-cinematic .scene-title {
+      left: 34px;
+      bottom: 158px;
+    }
+
+    .variant-cinematic .dialogue-wrap {
+      left: 50%;
+      right: auto;
+      bottom: 24px;
+      width: min(980px, calc(100vw - 48px));
+      min-height: 124px;
+      transform: translateX(-50%);
+      grid-template-columns: 96px 1fr 116px;
+      border-color: rgba(255,255,255,.14);
+      border-radius: 20px;
+      background: rgba(5,10,18,.72);
+    }
+
+    .variant-cinematic .portrait { border-radius: 20px 0 0 20px; }
+    .variant-cinematic .dialogue-copy { padding: 16px 19px 15px; }
+    .variant-cinematic .dialogue-text { font-size: clamp(15px, 1.35vw, 19px); }
+    .variant-cinematic .dialogue-actions { width: 116px; padding: 12px; }
+
+    .variant-cinematic .hotspot {
+      --size: 32px;
+      border-color: rgba(255,255,255,.58);
+      background: rgba(0,0,0,.22);
+      box-shadow: 0 0 0 5px rgba(255,255,255,.06);
+      animation: none;
+    }
+
+    .variant-cinematic .hotspot::before {
+      width: 8px;
+      left: 11px;
+      top: 14px;
+    }
+
+    .variant-cinematic .hotspot::after {
+      height: 8px;
+      left: 14px;
+      top: 11px;
+    }
+
+    .variant-cinematic .hotspot-label {
+      left: 50%;
+      top: calc(100% + 9px);
+      transform: translate(-50%, 0);
+    }
+
+    .variant-cinematic .hotspot:hover .hotspot-label,
+    .variant-cinematic .hotspot:focus-visible .hotspot-label {
+      transform: translate(-50%, 2px);
+    }
+
+    .variant-cinematic .investigate-tip {
+      bottom: 28px;
+      left: 28px;
+      transform: none;
+    }
+
+    .variant-cinematic .next-scene-button {
+      right: 28px;
+      bottom: 28px;
+    }
+
+    .floating-tools {
+      position: absolute;
+      z-index: 25;
+      right: 28px;
+      top: 24px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .floating-tools .ui-button {
+      padding: 0 14px;
+      background: rgba(5,10,18,.65);
+      backdrop-filter: blur(12px);
+    }
+
+    .end-panel {
+      position: absolute;
+      z-index: 10;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 30px;
+      background:
+        linear-gradient(90deg, rgba(3,7,12,.9), rgba(3,7,12,.38)),
+        url("assets/20_scene_epilogue_returned_memories.png") center/cover;
+    }
+
+    .end-card {
+      width: min(680px, 90vw);
+      padding: 34px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(6,12,21,.9);
+      box-shadow: 0 30px 80px rgba(0,0,0,.5);
+      backdrop-filter: blur(16px);
+    }
+
+    .end-card h1 {
+      margin: 0;
+      font-family: Georgia, "STSong", serif;
+      font-size: 36px;
+    }
+
+    .end-card p {
+      color: var(--muted);
+      line-height: 1.8;
+    }
+
+    .end-clues {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap: 10px;
+      margin: 22px 0;
+    }
+
+    .end-clue {
+      padding: 12px;
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 9px;
+      background: rgba(255,255,255,.04);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .end-clue strong { display: block; color: var(--gold-bright); margin-bottom: 5px; }
+
+    @media (max-width: 980px) {
+      #stage { min-height: 560px; }
+      .objective-chip { display: none; }
+      .dialogue-wrap {
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        min-height: 142px;
+        grid-template-columns: 86px 1fr;
+      }
+      .dialogue-actions {
+        grid-column: 1 / -1;
+        width: auto;
+        padding: 8px 12px 12px;
+        flex-direction: row;
+        border-left: 0;
+        border-top: 1px solid var(--line);
+      }
+      .portrait { grid-row: 1; border-radius: 14px 0 0 0; }
+      .dialogue-copy { padding: 14px; }
+      .dialogue-text { font-size: 15px; }
+      .scene-title { display: none; }
+      .investigate-tip { bottom: 166px; }
+      .next-scene-button { right: 16px; bottom: 166px; min-width: 220px; }
+      .evidence-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+
+      .variant-notebook {
+        display: block;
+        padding: 0;
+      }
+      .variant-notebook .notebook-rail { display: none; }
+      .variant-notebook .scene-bg { inset: 0; border-radius: 0; }
+      .variant-notebook .dialogue-wrap {
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        grid-template-columns: 86px 1fr;
+      }
+      .variant-notebook .next-scene-button { right: 16px; bottom: 166px; }
+      .variant-notebook .investigate-tip { bottom: 166px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 1ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 1ms !important;
+      }
+    }
+
+    .proto-picker {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2147483647;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      padding: 4px;
+      border-radius: 999px;
+      background: rgba(10, 10, 10, 0.82);
+      -webkit-backdrop-filter: blur(12px) saturate(1.4);
+      backdrop-filter: blur(12px) saturate(1.4);
+      box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+        0 8px 24px rgba(0, 0, 0, 0.24),
+        0 2px 6px rgba(0, 0, 0, 0.12);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 13px;
+      line-height: 1;
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .proto-picker-highlight {
+      position: absolute;
+      top: 4px;
+      left: 0;
+      height: 28px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+      will-change: transform;
+    }
+
+    /* The slide is enabled only after first paint (data-ready), so load doesn't animate. */
+    .proto-picker[data-ready] .proto-picker-highlight {
+      transition:
+        transform 250ms cubic-bezier(0.23, 1, 0.32, 1),
+        width 250ms cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .proto-picker[data-ready] .proto-picker-highlight { transition: none; }
+    }
+
+    .proto-picker-item {
+      position: relative; /* sits above the highlight */
+      display: flex;
+      align-items: center;
+      height: 28px;
+      padding: 0 12px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: rgba(255, 255, 255, 0.55);
+      font: inherit;
+      cursor: pointer;
+      transition: color 150ms ease-out;
+    }
+
+    .proto-picker-item:hover {
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    .proto-picker-item:active {
+      transform: scale(0.97);
+    }
+
+    .proto-picker-item:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.4);
+      outline-offset: 2px;
+    }
+
+    .proto-picker-item[data-active] {
+      color: #fff;
+    }
+
+    .proto-picker-divider {
+      width: 1px;
+      height: 16px;
+      margin: 0 4px;
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .proto-picker-replay {
+      padding: 0 10px;
+      font-size: 14px;
+    }
+
+    .proto-picker[data-position="top"] {
+      bottom: auto;
+      top: 24px;
+    }
+
+    /* Unified play mode: immersive scene + one evidence rail. */
+    .top-hud { right: 304px; }
+    .game-shell.evidence-collapsed .top-hud { right: 0; }
+
+    .dialogue-wrap {
+      right: 316px;
+      grid-template-columns: 148px 1fr 108px;
+    }
+
+    .game-shell.evidence-collapsed .dialogue-wrap { right: 24px; }
+    .next-scene-button { right: 316px; }
+    .game-shell.evidence-collapsed .next-scene-button { right: 28px; }
+
+    .hotspot {
+      --size: 48px;
+      border-width: 2px;
+      background: rgba(5, 12, 21, 0.56);
+    }
+
+    .hotspot::before {
+      width: 18px;
+      height: 18px;
+      left: 10px;
+      top: 9px;
+      border: 2px solid var(--gold-bright);
+      border-radius: 50%;
+      background: transparent;
+    }
+
+    .hotspot::after {
+      width: 13px;
+      height: 3px;
+      left: 25px;
+      top: 29px;
+      border-radius: 999px;
+      transform: rotate(45deg);
+      transform-origin: left center;
+    }
+
+    .hotspot.inspected::before {
+      border-color: var(--success);
+      background: transparent;
+    }
+
+    .hotspot.inspected::after { background: var(--success); }
+
+    .hotspot-label {
+      opacity: .82;
+      transform: translate(0, -50%);
+    }
+
+    .portrait {
+      background-position-y: 3%;
+      animation: portrait-snap 240ms var(--ease) both;
+    }
+
+    .portrait.shiyi-portrait {
+      background-color: rgba(6, 20, 28, .9);
+      background-position-y: center;
+      filter: drop-shadow(0 0 12px rgba(72, 239, 230, .32));
+    }
+
+    @keyframes portrait-snap {
+      from { opacity: 0; transform: translateX(-10px) scale(.98); }
+      65% { opacity: 1; transform: translateX(2px) scale(1.01); }
+      to { opacity: 1; transform: none; }
+    }
+
+    .shiyi-emergence {
+      position: absolute;
+      z-index: 28;
+      left: 61%;
+      top: 48%;
+      width: 250px;
+      height: 330px;
+      pointer-events: none;
+      background-image: url("assets/20_shiyi_actions_transparent.png");
+      background-repeat: no-repeat;
+      background-size: 400% auto;
+      background-position: 33.333% center;
+      filter: drop-shadow(0 0 28px rgba(78, 241, 228, .8));
+      animation: emerge-from-mask 1.05s cubic-bezier(.16, .86, .28, 1.16) both;
+    }
+
+    .shiyi-emergence::before {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      left: 50%;
+      bottom: 22%;
+      width: 112px;
+      height: 66px;
+      border: 3px solid rgba(255, 218, 143, .88);
+      border-radius: 52% 48% 45% 55%;
+      background: #08090d;
+      box-shadow: 0 0 0 10px rgba(230, 189, 109, .09), 0 0 50px rgba(74, 240, 226, .7);
+      transform: translateX(-50%) rotate(-7deg);
+      animation: mask-portal 1.05s ease-out both;
+    }
+
+    @keyframes emerge-from-mask {
+      0% { opacity: 0; transform: translate(-50%, -35%) scale(.06) rotate(-26deg); }
+      38% { opacity: 1; transform: translate(-48%, -72%) scale(.55) rotate(9deg); }
+      72% { transform: translate(-36%, -103%) scale(1.08) rotate(-3deg); }
+      100% { opacity: 1; transform: translate(-32%, -96%) scale(1) rotate(0); }
+    }
+
+    @keyframes mask-portal {
+      0%, 20% { opacity: 1; transform: translateX(-50%) scale(1.15) rotate(-7deg); }
+      75%, 100% { opacity: 0; transform: translateX(-50%) scale(.7) rotate(-7deg); }
+    }
+
+    .evidence-rail {
+      position: absolute;
+      z-index: 38;
+      top: 16px;
+      right: 16px;
+      bottom: 16px;
+      width: 276px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid rgba(255, 222, 160, .25);
+      border-radius: 14px;
+      background: linear-gradient(160deg, rgba(16, 28, 45, .96), rgba(5, 10, 18, .94));
+      box-shadow: 0 24px 64px rgba(0, 0, 0, .48);
+      backdrop-filter: blur(18px);
+      transition: transform 220ms var(--ease), opacity 180ms ease-out;
+    }
+
+    .evidence-rail.closed {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(calc(100% + 24px));
+    }
+
+    .evidence-rail-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      min-height: 72px;
+      padding: 14px 14px 12px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .evidence-rail-header small {
+      display: block;
+      color: var(--gold);
+      font-size: 9px;
+      letter-spacing: .2em;
+    }
+
+    .evidence-rail-header h2 {
+      margin: 3px 0 0;
+      font-family: Georgia, "STSong", serif;
+      font-size: 19px;
+    }
+
+    .evidence-rail-scroll {
+      flex: 1;
+      overflow: auto;
+      padding: 10px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(230, 189, 109, .4) transparent;
+    }
+
+    .evidence-entry {
+      display: grid;
+      grid-template-columns: 62px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 8px;
+      padding: 7px;
+      border: 1px solid rgba(255, 255, 255, .07);
+      border-radius: 9px;
+      background: rgba(255, 255, 255, .035);
+    }
+
+    .evidence-entry.is-new { animation: evidence-pop 340ms var(--ease) both; }
+
+    @keyframes evidence-pop {
+      from { opacity: 0; transform: translateX(12px); box-shadow: 0 0 0 rgba(230,189,109,0); }
+      70% { opacity: 1; transform: translateX(-2px); box-shadow: 0 0 22px rgba(230,189,109,.2); }
+      to { transform: none; }
+    }
+
+    .evidence-icon {
+      width: 62px;
+      aspect-ratio: 1;
+      border: 1px solid rgba(255, 222, 160, .2);
+      border-radius: 8px;
+      background-color: #09111b;
+      background-repeat: no-repeat;
+      background-size: 500% 400%;
+      box-shadow: inset 0 0 18px rgba(0,0,0,.28);
+    }
+
+    .evidence-entry strong {
+      display: block;
+      margin-bottom: 4px;
+      color: #fff0ce;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .evidence-entry span {
+      display: -webkit-box;
+      overflow: hidden;
+      color: rgba(255,255,255,.5);
+      font-size: 9px;
+      line-height: 1.5;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+    }
+
+    .evidence-empty {
+      display: grid;
+      place-items: center;
+      min-height: 170px;
+      padding: 18px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+      text-align: center;
+    }
+
+    .evidence-tab {
+      position: absolute;
+      z-index: 41;
+      top: 92px;
+      right: 304px;
+      min-width: 74px;
+      min-height: 42px;
+      padding: 0 13px;
+      border: 1px solid rgba(255,222,160,.3);
+      border-radius: 9px 0 0 9px;
+      background: rgba(8, 15, 25, .9);
+      box-shadow: 0 10px 28px rgba(0,0,0,.28);
+      color: #fff0ce;
+      cursor: pointer;
+      transition: right 220ms var(--ease), background 150ms ease-out;
+    }
+
+    .evidence-tab.closed { right: 16px; border-radius: 9px; }
+    .evidence-tab:hover { background: rgba(43, 57, 74, .96); }
+    .evidence-rail .association-zone { margin: 12px 0 0; padding: 12px; }
+    .evidence-rail .association-zone h3 { font-size: 12px; }
+    .evidence-rail .association-zone p { font-size: 10px; line-height: 1.55; }
+    .evidence-rail .association-button { font-size: 10px; line-height: 1.5; }
+
+    .talk-button {
+      position: absolute;
+      z-index: 28;
+      left: 22px;
+      bottom: 24px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 142px;
+      min-height: 50px;
+      padding: 0 17px;
+      border: 2px solid #e8c56d;
+      border-radius: 8px;
+      background: rgba(4, 14, 28, .92);
+      box-shadow: 0 10px 28px rgba(0,0,0,.38), inset 0 0 0 2px rgba(255,255,255,.035);
+      color: #fff0c9;
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      cursor: pointer;
+      transition: transform 140ms ease, background 140ms ease, box-shadow 140ms ease;
+    }
+
+    .talk-button:hover,
+    .talk-button:focus-visible {
+      transform: translateY(-2px);
+      background: rgba(15, 39, 65, .96);
+      box-shadow: 0 12px 34px rgba(0,0,0,.46), 0 0 0 2px rgba(232,197,109,.18);
+      outline: none;
+    }
+
+    .talk-button.is-required {
+      border-color: #ffd24d;
+      box-shadow: 0 10px 28px rgba(0,0,0,.38), 0 0 0 3px rgba(255,210,77,.13), 0 0 22px rgba(255,210,77,.22);
+      animation: talk-ready 1.45s ease-in-out infinite;
+    }
+
+    @keyframes talk-ready {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-3px); }
+    }
+
+    .talk-icon {
+      position: relative;
+      width: 30px;
+      height: 22px;
+      border-radius: 50%;
+      background: #fff2cb;
+    }
+
+    .talk-icon::before {
+      content: "";
+      position: absolute;
+      left: 4px;
+      bottom: -5px;
+      border-width: 6px 7px 0 0;
+      border-style: solid;
+      border-color: #fff2cb transparent transparent transparent;
+      transform: rotate(12deg);
+    }
+
+    .talk-icon::after {
+      content: "•••";
+      position: absolute;
+      inset: -5px 0 0;
+      color: #132d48;
+      font-size: 18px;
+      letter-spacing: 0;
+      text-align: center;
+    }
+
+    .talk-count {
+      display: grid;
+      place-items: center;
+      min-width: 22px;
+      height: 22px;
+      margin-left: auto;
+      border-radius: 999px;
+      background: #d49d29;
+      color: #091524;
+      font-size: 11px;
+      letter-spacing: 0;
+    }
+
+    .talk-overlay {
+      position: absolute;
+      z-index: 36;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 82px 24px 34px;
+      background: rgba(1, 6, 14, .56);
+      animation: fade-in 160ms ease-out both;
+    }
+
+    .talk-menu {
+      width: min(720px, 88vw);
+      max-height: calc(100vh - 122px);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      filter: drop-shadow(0 20px 34px rgba(0,0,0,.5));
+    }
+
+    .talk-menu-heading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      color: #ffe8aa;
+      font-family: Georgia, "STSong", serif;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-shadow: 0 2px 8px rgba(0,0,0,.72);
+    }
+
+    .talk-menu-heading::before,
+    .talk-menu-heading::after {
+      content: "";
+      width: min(112px, 16vw);
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #d4a84d);
+    }
+
+    .talk-menu-heading::after { transform: rotate(180deg); }
+
+    .talk-speakers {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      min-height: 34px;
+    }
+
+    .talk-speaker-tab {
+      padding: 7px 18px;
+      border: 1px solid rgba(125,186,224,.42);
+      border-radius: 999px;
+      background: rgba(5,19,35,.82);
+      color: rgba(255,255,255,.72);
+      cursor: pointer;
+    }
+
+    .talk-speaker-tab.active {
+      border-color: #ebc760;
+      background: rgba(22,67,104,.92);
+      color: #fff4d5;
+      box-shadow: 0 0 0 2px rgba(235,199,96,.12);
+    }
+
+    .talk-topic-list {
+      display: grid;
+      gap: 11px;
+      overflow: auto;
+      padding: 4px 6px;
+    }
+
+    .talk-topic {
+      position: relative;
+      min-height: 58px;
+      display: grid;
+      grid-template-columns: 82px minmax(0, 1fr) 70px;
+      align-items: center;
+      overflow: hidden;
+      padding: 0;
+      border: 2px solid rgba(222,241,255,.8);
+      border-radius: 0;
+      background: linear-gradient(90deg, rgba(21,128,184,.96), rgba(15,104,165,.96));
+      box-shadow: inset 0 0 18px rgba(107,210,255,.12);
+      color: white;
+      cursor: pointer;
+      animation: topic-row-in 220ms cubic-bezier(.16,.82,.28,1) both;
+      animation-delay: calc(var(--topic-index, 0) * 55ms);
+      transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+    }
+
+    @keyframes topic-row-in {
+      from { opacity: 0; transform: translateX(-18px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .talk-topic:hover,
+    .talk-topic:focus-visible {
+      transform: translateX(4px);
+      border-color: #ffd65d;
+      box-shadow: 0 0 0 4px rgba(255,198,46,.24), inset 0 0 20px rgba(255,255,255,.12);
+      outline: none;
+    }
+
+    .topic-state {
+      align-self: stretch;
+      display: grid;
+      place-items: center;
+      width: 82px;
+      background: #f5f3ea;
+      color: #1789c7;
+      clip-path: polygon(0 0, 72% 0, 100% 100%, 0 100%);
+      font-family: Arial, sans-serif;
+      font-size: 34px;
+      font-weight: 900;
+    }
+
+    .talk-topic:not(.is-read) .topic-state { color: transparent; }
+
+    .topic-label {
+      padding: 10px 14px 10px 2px;
+      font-size: clamp(17px, 2.1vw, 25px);
+      line-height: 1.2;
+      letter-spacing: .05em;
+      text-align: center;
+      text-shadow: 0 2px 6px rgba(0,0,0,.35);
+    }
+
+    .topic-new {
+      justify-self: center;
+      padding: 4px 8px;
+      border: 1px solid #f2cf6b;
+      border-radius: 999px;
+      background: #132038;
+      color: #ffd86d;
+      font-family: Georgia, serif;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .12em;
+      box-shadow: 0 0 12px rgba(255,201,55,.28);
+    }
+
+    .talk-topic.is-read { filter: saturate(.82); }
+    .talk-topic.is-read .topic-label { opacity: .9; }
+
+    .talk-menu-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 42px;
+      color: rgba(255,255,255,.58);
+      font-size: 11px;
+    }
+
+    .talk-close {
+      min-width: 116px;
+      min-height: 40px;
+      border: 1px solid rgba(255,222,160,.38);
+      border-radius: 7px;
+      background: rgba(4,14,27,.92);
+      color: #ffedc4;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .talk-footer-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .present-button {
+      min-width: 132px;
+      min-height: 40px;
+      border: 1px solid rgba(112, 213, 255, .62);
+      border-radius: 7px;
+      background: linear-gradient(180deg, #2387b8, #15557d);
+      color: #fff;
+      font-weight: 900;
+      letter-spacing: .08em;
+      box-shadow: inset 0 1px rgba(255,255,255,.22), 0 4px 16px rgba(0,0,0,.3);
+      cursor: pointer;
+    }
+
+    .presentation-overlay {
+      position: absolute;
+      z-index: 38;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 70px 24px 28px;
+      background: rgba(1, 6, 14, .76);
+      backdrop-filter: blur(6px);
+    }
+
+    .presentation-menu {
+      width: min(960px, 92vw);
+      max-height: calc(100vh - 100px);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid rgba(121, 211, 255, .56);
+      border-radius: 11px;
+      background: linear-gradient(155deg, rgba(8, 33, 56, .98), rgba(3, 13, 27, .99));
+      box-shadow: 0 22px 65px rgba(0,0,0,.62), inset 0 0 0 2px rgba(255,255,255,.04);
+    }
+
+    .presentation-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(121, 211, 255, .25);
+      color: #fff;
+    }
+
+    .presentation-header strong {
+      font-size: clamp(19px, 2.2vw, 28px);
+      letter-spacing: .08em;
+    }
+
+    .presentation-header span {
+      color: rgba(255,255,255,.62);
+      font-size: 12px;
+    }
+
+    .presentation-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+      gap: 10px;
+      overflow: auto;
+      padding: 18px;
+    }
+
+    .present-evidence {
+      position: relative;
+      display: grid;
+      gap: 8px;
+      align-content: start;
+      padding: 9px;
+      border: 1px solid rgba(128, 205, 239, .28);
+      border-radius: 9px;
+      background: rgba(5, 17, 32, .88);
+      color: #eefaff;
+      text-align: left;
+      cursor: pointer;
+      animation: topic-enter .24s both;
+      animation-delay: calc(var(--present-index) * 22ms);
+    }
+
+    .present-evidence:hover,
+    .present-evidence:focus-visible {
+      border-color: #ffd04a;
+      transform: translateY(-2px);
+      box-shadow: 0 0 0 2px rgba(255, 208, 74, .18), 0 10px 25px rgba(0,0,0,.35);
+      outline: none;
+    }
+
+    .present-evidence.is-presented { border-color: rgba(255, 208, 74, .7); }
+    .present-evidence .evidence-icon { width: 100%; }
+    .present-evidence strong { font-size: 12px; line-height: 1.35; }
+    .present-evidence > span { color: #ffd45f; font-size: 10px; font-weight: 800; }
+
+    .presentation-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 11px 18px;
+      border-top: 1px solid rgba(121, 211, 255, .18);
+      color: rgba(255,255,255,.55);
+      font-size: 11px;
+    }
+
+    @media (max-width: 900px) {
+      .top-hud { right: 0; padding: 12px; }
+      .objective-chip { display: none; }
+      .progress-chip { margin-left: auto; }
+      .dialogue-wrap,
+      .game-shell.evidence-collapsed .dialogue-wrap { right: 12px; }
+      .next-scene-button,
+      .game-shell.evidence-collapsed .next-scene-button { right: 16px; }
+      .evidence-rail { width: min(328px, calc(100vw - 32px)); }
+      .evidence-tab { right: min(356px, calc(100vw - 6px)); }
+      .evidence-tab.closed { right: 12px; }
+      .talk-menu { width: min(650px, 92vw); }
+    }
+
+    /* Reference-aligned visual-novel composition. */
+    .top-hud { display: none; }
+
+    .scene-title {
+      top: 20px;
+      bottom: auto;
+      left: 22px;
+      padding: 8px 12px;
+      border-left: 3px solid #2e96c8;
+      background: rgba(3, 12, 24, .7);
+      backdrop-filter: blur(8px);
+    }
+
+    .scene-title span { letter-spacing: .12em; }
+
+    .dialogue-wrap,
+    .game-shell.evidence-collapsed .dialogue-wrap {
+      left: 0;
+      right: 0;
+      bottom: 0;
+      min-height: 218px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 128px;
+      border: 0;
+      border-top: 4px solid rgba(255,255,255,.78);
+      border-radius: 0;
+      background:
+        radial-gradient(circle at 25% 20%, rgba(37, 71, 111, .24), transparent 38%),
+        repeating-linear-gradient(135deg, rgba(255,255,255,.018) 0 1px, transparent 1px 4px),
+        #071328;
+      box-shadow: 0 -14px 40px rgba(0,0,0,.28), inset 0 1px rgba(255,255,255,.08);
+      backdrop-filter: none;
+      animation: dialogue-rise 180ms ease-out both;
+    }
+
+    @keyframes dialogue-rise {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    .dialogue-wrap .portrait { display: none; }
+
+    .dialogue-copy {
+      position: relative;
+      padding: 34px clamp(34px, 7vw, 108px) 24px clamp(90px, 18vw, 270px);
+    }
+
+    .speaker-row {
+      position: absolute;
+      left: clamp(70px, 8vw, 122px);
+      top: -23px;
+      width: 205px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      padding: 0 26px;
+      background: #2d94c4;
+      clip-path: polygon(9% 0, 91% 0, 100% 50%, 91% 100%, 9% 100%, 0 50%);
+      filter: drop-shadow(0 3px 0 rgba(255,255,255,.75));
+    }
+
+    .speaker-name {
+      color: white;
+      font-family: "Microsoft YaHei", sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: .08em;
+    }
+
+    .speaker-line { display: none; }
+
+    .dialogue-text {
+      max-width: none;
+      margin: 0;
+      color: #f3f4f8;
+      font-size: clamp(24px, 2.45vw, 37px);
+      font-weight: 400;
+      line-height: 1.55;
+      letter-spacing: .025em;
+      text-shadow: 0 2px 3px rgba(0,0,0,.65);
+    }
+
+    .dialogue-keyword {
+      color: #ff2b3f;
+      font-style: normal;
+      font-weight: 850;
+      letter-spacing: .045em;
+      background: linear-gradient(90deg, rgba(255,43,63,.76), rgba(255,43,63,.18)) bottom / 100% 2px no-repeat;
+      text-shadow: 0 0 2px rgba(255,255,255,.42), 0 0 15px rgba(255,43,63,.5), 0 2px 3px rgba(0,0,0,.7);
+      animation: keyword-flash 360ms cubic-bezier(.2,.8,.2,1) both;
+    }
+
+    @keyframes keyword-flash {
+      0% { color: #fff; filter: brightness(1.9); text-shadow: 0 0 22px rgba(255,255,255,.9); }
+      58% { color: #ff1934; filter: brightness(1.25); }
+      100% { color: #ff2b3f; filter: none; }
+    }
+
+    .dialogue-actions {
+      width: 128px;
+      padding: 20px;
+      display: grid;
+      place-items: center;
+      border: 0;
+    }
+
+    .dialogue-counter { display: none; }
+
+    .advance-button {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-height: 96px;
+      border: 0;
+      background: transparent;
+      color: transparent;
+      font-size: 0;
+    }
+
+    .advance-button::before {
+      content: "≫";
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      color: #ffc82d;
+      font-family: Arial Black, sans-serif;
+      font-size: 68px;
+      letter-spacing: -.28em;
+      text-shadow: 3px 3px 0 #7a5200, 0 0 18px rgba(255,200,45,.3);
+      animation: next-pulse 1.1s ease-in-out infinite;
+    }
+
+    .advance-button::after {
+      content: none;
+      display: none;
+    }
+
+    .advance-button:hover,
+    .advance-button:focus-visible {
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+      outline: none;
+    }
+
+    @keyframes next-pulse {
+      0%, 100% { transform: translateX(-3px); opacity: .78; }
+      50% { transform: translateX(5px); opacity: 1; }
+    }
+
+    .stage-speaker {
+      --sprite-x: 0%;
+      position: absolute;
+      z-index: 24;
+      left: 50%;
+      bottom: 208px;
+      width: min(510px, 43vw);
+      height: calc(100vh - 224px);
+      max-height: 750px;
+      min-height: 430px;
+      pointer-events: none;
+      background-repeat: no-repeat;
+      background-size: 400% auto;
+      background-position: var(--sprite-x) top;
+      filter: drop-shadow(0 18px 22px rgba(0,0,0,.34));
+      transform-origin: 50% 100%;
+      animation: character-cut-in 260ms cubic-bezier(.16,.84,.27,1.08) both;
+    }
+
+    .game-shell.dialoguing .scene-bg {
+      filter: brightness(.62) saturate(.78);
+      transform: scale(1.025);
+    }
+
+    .stage-speaker.speaker-shiyi {
+      left: 47%;
+      bottom: 192px;
+      width: min(320px, 30vw);
+      height: min(470px, calc(100vh - 220px));
+      min-height: 330px;
+      background-position-y: center;
+      filter: drop-shadow(0 0 24px rgba(75,239,225,.6)) drop-shadow(0 14px 18px rgba(0,0,0,.34));
+      animation: shiyi-float-in 420ms cubic-bezier(.17,.86,.28,1.14) both, shiyi-hover 3.2s ease-in-out 500ms infinite;
+    }
+
+    .stage-speaker.speaker-shadow {
+      width: min(540px, 46vw);
+      mix-blend-mode: screen;
+      filter: contrast(1.18) brightness(.88) drop-shadow(0 18px 28px rgba(0,0,0,.62));
+    }
+
+    @keyframes character-cut-in {
+      from { opacity: 0; transform: translateX(-50%) translateY(14px) scale(.96); }
+      70% { opacity: 1; transform: translateX(-50%) translateY(-3px) scale(1.01); }
+      to { transform: translateX(-50%); }
+    }
+
+    @keyframes shiyi-float-in {
+      from { opacity: 0; transform: translateX(-50%) translateY(24px) scale(.7) rotate(-5deg); }
+      to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1) rotate(0); }
+    }
+
+    @keyframes shiyi-hover {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(-8px); }
+    }
+
+    .blink-pair {
+      --blink-top: 112px;
+      position: absolute;
+      left: 50%;
+      top: var(--blink-top);
+      width: 88px;
+      height: 18px;
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+
+    .blink-pair i {
+      position: absolute;
+      top: 6px;
+      width: 25px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(28, 24, 30, .92);
+      opacity: 0;
+      transform: scaleY(.05);
+      animation: character-blink 5.6s ease-in-out var(--blink-delay, .45s) infinite;
+    }
+
+    .blink-pair i:first-child { left: 9px; transform: rotate(2deg) scaleY(.05); }
+    .blink-pair i:last-child { right: 9px; transform: rotate(-2deg) scaleY(.05); }
+
+    @keyframes character-blink {
+      0%, 29%, 33%, 76%, 80%, 100% { opacity: 0; }
+      30%, 32%, 77%, 79% { opacity: 1; transform: scaleY(1); }
+    }
+
+    .speaker-fox .blink-pair { display: none; }
+    .speaker-shadow .blink-pair { display: none; }
+    .speaker-administrator .blink-pair { --blink-top: 118px; }
+    .speaker-host .blink-pair,
+    .speaker-gatekeeper .blink-pair { --blink-top: 112px; }
+    .speaker-shiyi .blink-pair { --blink-top: 78px; width: 70px; }
+    .speaker-shiyi .blink-pair i { width: 20px; background: rgba(29,48,53,.96); }
+
+    .emotion-strong { animation: screen-shake-strong 380ms linear both; }
+    .emotion-hit { animation: screen-shake-hit 260ms cubic-bezier(.2,.8,.25,1) both; }
+
+    @keyframes screen-shake-strong {
+      0%, 100% { transform: translate(0,0); }
+      12% { transform: translate(-8px, 3px) rotate(-.16deg); }
+      25% { transform: translate(7px, -4px) rotate(.13deg); }
+      38% { transform: translate(-6px, -2px); }
+      52% { transform: translate(6px, 3px); }
+      68% { transform: translate(-3px, 2px); }
+      82% { transform: translate(3px, -2px); }
+    }
+
+    @keyframes screen-shake-hit {
+      0%, 100% { transform: translate(0,0); }
+      30% { transform: translate(-4px, 1px); }
+      55% { transform: translate(4px, -1px); }
+      78% { transform: translate(-2px, 0); }
+    }
+
+    .game-shell.investigating,
+    .game-shell.investigating * { cursor: none !important; }
+
+    .game-shell.investigating .hotspot {
+      width: var(--hit-w, 14%);
+      height: var(--hit-h, 18%);
+      margin: calc(var(--hit-h, 18%) * -0.5) 0 0 calc(var(--hit-w, 14%) * -0.5);
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+      opacity: 1;
+      animation: none;
+    }
+
+    .game-shell.investigating .hotspot::before,
+    .game-shell.investigating .hotspot::after { display: none; }
+
+    .game-shell.investigating .hotspot-label {
+      display: none;
+    }
+
+    .game-shell.investigating .hotspot:hover .hotspot-label,
+    .game-shell.investigating .hotspot:focus-visible .hotspot-label {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    .investigation-cursor {
+      --lens-color: #37aee8;
+      position: absolute;
+      z-index: 22;
+      left: var(--cursor-x, 50%);
+      top: var(--cursor-y, 48%);
+      width: 58px;
+      height: 58px;
+      pointer-events: none;
+      opacity: .96;
+      transform: translate(-50%, -50%);
+      filter: drop-shadow(0 2px 0 white) drop-shadow(0 0 7px rgba(55,174,232,.7));
+      transition: filter 80ms ease-out;
+    }
+
+    .investigation-cursor::before {
+      content: "";
+      position: absolute;
+      left: 8px;
+      top: 6px;
+      width: 29px;
+      height: 29px;
+      border: 7px solid var(--lens-color);
+      border-radius: 50%;
+      background: rgba(255,255,255,.12);
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,.7);
+    }
+
+    .investigation-cursor::after {
+      content: "";
+      position: absolute;
+      left: 37px;
+      top: 37px;
+      width: 22px;
+      height: 8px;
+      border: 2px solid white;
+      border-radius: 999px;
+      background: var(--lens-color);
+      transform: rotate(45deg);
+      transform-origin: left center;
+    }
+
+    .investigation-cursor.valid {
+      --lens-color: #ffc91f;
+      filter: drop-shadow(0 2px 0 white) drop-shadow(0 0 10px rgba(255,201,31,.95));
+    }
+
+    .investigation-cursor span {
+      position: absolute;
+      left: 50%;
+      top: 64px;
+      width: max-content;
+      max-width: 190px;
+      padding: 6px 10px;
+      border: 1px solid rgba(255,255,255,.3);
+      border-radius: 6px;
+      background: rgba(4, 11, 22, .88);
+      color: white;
+      font-size: 11px;
+      line-height: 1.4;
+      opacity: 0;
+      transform: translate(-50%, -4px);
+      transition: opacity 80ms ease-out, transform 80ms ease-out;
+    }
+
+    .investigation-cursor.valid span {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    .investigation-cursor.ui-hidden { opacity: 0; }
+    .game-shell.investigating .evidence-tab,
+    .game-shell.investigating .evidence-rail,
+    .game-shell.investigating .evidence-rail *,
+    .game-shell.investigating .next-scene-button,
+    .game-shell.investigating .talk-button,
+    .game-shell.investigating .investigate-tip.is-action { cursor: pointer !important; }
+
+    .investigate-tip { bottom: 28px; }
+    .investigate-tip.is-action {
+      border-color: rgba(255, 210, 77, .72);
+      background: rgba(8, 20, 35, .94);
+      color: #fff3cc;
+      cursor: pointer;
+      box-shadow: 0 8px 25px rgba(0,0,0,.36), 0 0 18px rgba(255,210,77,.12);
+    }
+    .investigate-tip.is-action strong {
+      margin-left: 8px;
+      color: #ffd24d;
+      white-space: nowrap;
+    }
+    .investigate-tip.is-action:hover,
+    .investigate-tip.is-action:focus-visible {
+      border-color: #ffd24d;
+      background: rgba(16, 43, 70, .97);
+      outline: none;
+    }
+    .next-scene-button,
+    .game-shell.evidence-collapsed .next-scene-button { right: 28px; bottom: 26px; }
+
+    .evidence-tab { top: 18px; }
+
+    @media (pointer: coarse) {
+      .game-shell.investigating,
+      .game-shell.investigating * { cursor: auto !important; }
+      .investigation-cursor { display: none; }
+      .game-shell.investigating .hotspot {
+        --size: 48px;
+        width: var(--size);
+        height: var(--size);
+        margin: calc(var(--size) / -2);
+        border: 2px solid #ffc91f;
+        border-radius: 50%;
+        background: rgba(5,12,21,.58);
+        box-shadow: 0 0 0 7px rgba(255,201,31,.1), 0 0 20px rgba(255,201,31,.4);
+      }
+      .game-shell.investigating .hotspot::before,
+      .game-shell.investigating .hotspot::after { display: block; }
+      .game-shell.investigating .hotspot::before { border-color: #ffc91f; }
+      .game-shell.investigating .hotspot::after { background: #ffc91f; }
+    }
+
+    @media (max-width: 760px) {
+      .talk-button { left: 12px; bottom: 16px; min-width: 116px; min-height: 44px; padding: 0 12px; font-size: 14px; }
+      .talk-icon { transform: scale(.82); margin: 0 -2px; }
+      .talk-overlay { padding: 64px 12px 20px; }
+      .talk-menu { width: 94vw; max-height: calc(100vh - 82px); }
+      .talk-speakers { overflow-x: auto; justify-content: flex-start; }
+      .talk-speaker-tab { flex: 0 0 auto; }
+      .talk-topic { grid-template-columns: 58px minmax(0,1fr) 54px; min-height: 52px; }
+      .topic-state { width: 58px; font-size: 27px; }
+      .topic-label { padding-right: 4px; font-size: 16px; }
+      .topic-new { padding: 3px 5px; font-size: 8px; }
+      .talk-menu-footer span { display: none; }
+      .talk-menu-footer { justify-content: flex-end; }
+      .talk-footer-actions { width: 100%; }
+      .talk-footer-actions button { flex: 1; min-width: 0; }
+      .presentation-overlay { padding: 54px 10px 12px; }
+      .presentation-menu { width: 96vw; max-height: calc(100vh - 66px); }
+      .presentation-header { padding: 12px 13px; }
+      .presentation-header span { display: none; }
+      .presentation-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; padding: 10px; }
+      .present-evidence { padding: 7px; gap: 6px; }
+      .present-evidence strong { font-size: 10px; }
+      .presentation-footer span { display: none; }
+      .deduction-options { grid-template-columns: 1fr; }
+      .deduction-card { max-height: 86vh; overflow: auto; padding: 22px; }
+      .deduction-option { min-height: 84px; }
+      .dialogue-wrap,
+      .game-shell.evidence-collapsed .dialogue-wrap {
+        min-height: 190px;
+        grid-template-columns: 1fr 82px;
+      }
+      .dialogue-copy { padding: 32px 18px 20px 32px; }
+      .dialogue-text { font-size: 20px; }
+      .speaker-row { left: 18px; width: 166px; }
+      .speaker-name { font-size: 15px; }
+      .dialogue-actions { width: 82px; padding: 8px; }
+      .advance-button::before { font-size: 52px; }
+      .stage-speaker { width: min(460px, 78vw); bottom: 184px; height: calc(100vh - 198px); }
+      .stage-speaker.speaker-shiyi { width: min(270px, 56vw); bottom: 174px; }
+      .scene-title { display: none; }
+    }
+
+    @media (max-height: 620px) {
+      #stage { height: 100dvh; min-height: 0; }
+      .talk-button { bottom: 14px; }
+      .investigate-tip { bottom: 14px; }
+      .evidence-tab { top: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <main id="stage"></main>
+
+  <script>
+    const assets = {
+      invitation: "assets/10_scene_prologue_invitation.png",
+      entrance: "assets/11_scene_entrance.png",
+      ballroom: "assets/12_scene_ballroom_letter.png",
+      echo: "assets/13_scene_echo_gallery.png",
+      collection: "assets/14_scene_collection_room.png",
+      anyHouse: "assets/15_scene_seaside_any_house.png",
+      kitchen: "assets/16_scene_late_night_kitchen.png",
+      shadowCorridor: "assets/17_scene_shadow_corridor.png",
+      assembly: "assets/18_scene_memory_assembly.png",
+      finale: "assets/19_scene_finale_exchange.png",
+      epilogue: "assets/20_scene_epilogue_returned_memories.png",
+      gatekeeper: "assets/22_gatekeeper_actions_transparent.png",
+      fox: "assets/23_fox_actions_transparent.png",
+      administrator: "assets/24_administrator_actions_transparent.png",
+      host: "assets/25_host_actions_transparent.png",
+      shadow: "assets/26_shadow_actions.png",
+      shiyi: "assets/20_shiyi_actions_transparent.png",
+      evidenceAtlas: "assets/21_evidence_atlas.png"
+    };
+
+    const speakerArt = {
+      "门卫": assets.gatekeeper,
+      "狐狸面具客": assets.fox,
+      "管理员": assets.administrator,
+      "主持人": assets.host,
+      "影子": assets.shadow
+    };
+
+    const evidenceCatalog = {
+      invitation: ["无名请柬", "没有署名。红色火漆上压着一个四角星。"],
+      blackMask: ["无名面具", "内侧没有姓名，只留下曾经放过卡片的浅色方形痕迹。"],
+      sealedName: ["封存的姓名", "玩家亲手写下并封入信封的姓名。"],
+      ownerLetter: ["失主委托信", "要求最后一位登记的客人在日出前，通过四个房间找回失主身份。"],
+      starBadge: ["四角星徽章", "与请柬火漆上的图案完全相同。"],
+      mirrorMark: ["镜子上的四角星", "刻在黄铜修补处，手法与请柬火漆图案一致。"],
+      candle: ["回音阁蜡烛", "可以移动。烛泪证明它曾被人拿着走动。"],
+      echoRecording: ["十七秒录音", "三年前的录音。末尾包含哼唱声与钥匙碰撞声。"],
+      freedomCard: ["自由记忆卡", "第一道Hook生成的记忆卡。"],
+      echoKey: ["回音钥匙", "由真实经历凝成，可开启收藏室。"],
+      brokenRadio: ["损坏的收音机", "调频指针的连杆缺少一根细小金属销。"],
+      tapedKnife: ["缠胶带的小刀", "刀刃已经钝化，可以用来拧动收音机后盖的旧螺丝。"],
+      starButton: ["黑色星形纽扣", "与四角星图案相似，暂时不知道来自哪件衣服。"],
+      metalPin: ["金属细针", "从旧圆珠笔芯中拆出，尺寸接近收音机缺失的连杆销。"],
+      repairedRadio: ["修复的收音机", "装入金属细针后恢复工作，能够播放一段熟悉旋律。"],
+      sameMelody: ["相同的旋律", "收音机旋律与回音阁录音中的哼唱完全一致。"],
+      collectionCard: ["珍藏记忆卡", "第二道Hook生成的记忆卡。"],
+      collectionKey: ["收藏钥匙", "打开了收藏柜底部的隐蔽抽屉。"],
+      repairLabel: ["收音机维修标签", "残留一个姓氏“林”，旁边画着四角星。"],
+      visitorLedger: ["任意屋入住登记", "同一笔迹留下许多不存在的访客，末页画着一扇门。"],
+      cosplayCostume: ["旧Cosplay服装", "肩部缺少一枚四角星纽扣，针脚间距仍清晰可见。"],
+      backstagePhoto: ["褪色的后台合照", "所有人都在镜头里，唯独道具修理者只留下伸进画面的手。"],
+      harborKeyTag: ["港口钥匙牌", "背面写着“给每一个想成为别人的人留一间房”。"],
+      costumeMatch: ["纽扣与服装吻合", "黑色星形纽扣的线孔、旧线和服装肩部缺口完全吻合。"],
+      imaginaryCard: ["访客记忆卡", "第三道共鸣锁生成的门形卡片，记录一位想象中的同行者。"],
+      doorKey: ["任意屋钥匙", "由真实回答凝成，能够打开通往深夜厨房的门。"],
+      recipeCard: ["手写菜谱卡", "写着一道家常菜，字尾习惯性地向右上方挑起。"],
+      kitchenTimer: ["旧厨房计时器", "提示音缺少最后一拍，与收音机旋律的停顿方式相同。"],
+      spiceJar: ["四角星香料罐", "罐底刻着日期，正好是三年前假面舞会的前一天。"],
+      cookingPhoto: ["做菜照片", "画面只拍到一双沾着面粉的手；照片背面写着“别忘记自己喜欢的味道”。"],
+      travelTicket: ["折叠旅行票", "从未启程的海边车票，同行人一栏保持空白。"],
+      tableCard: ["餐桌记忆卡", "第四道共鸣锁生成的餐桌卡片，记录想与谁分享一次旅程或晚餐。"],
+      kitchenKey: ["厨房钥匙", "第四张记忆卡折成的钥匙，能开启返回礼堂的暗廊。"],
+      handwritingMatch: ["三处笔迹一致", "维修标签、入住登记与菜谱卡出自同一只手，但仍无法单独证明姓名。"],
+      fourMemories: ["四张记忆卡", "烛、罐、门与餐桌拼成完整面具；四道锁只对玩家的真实回答产生反应。"],
+      namedMask: ["有名的面具", "与封存姓名一同归还。它不再替人隐藏，而是替人保存愿意被看见的部分。"]
+    };
+
+    const evidenceAtlasIndex = {
+      invitation: 0,
+      blackMask: 1,
+      sealedName: 2,
+      ownerLetter: 3,
+      starBadge: 4,
+      mirrorMark: 5,
+      candle: 6,
+      echoRecording: 7,
+      freedomCard: 8,
+      echoKey: 9,
+      brokenRadio: 10,
+      tapedKnife: 11,
+      starButton: 12,
+      metalPin: 13,
+      repairedRadio: 14,
+      sameMelody: 15,
+      collectionCard: 16,
+      collectionKey: 17,
+      repairLabel: 18
+    };
+
+    const evidenceVisuals = {
+      visitorLedger: [assets.anyHouse, "52% 53%", "310%"],
+      cosplayCostume: [assets.anyHouse, "96% 27%", "255%"],
+      backstagePhoto: [assets.anyHouse, "55% 28%", "360%"],
+      harborKeyTag: [assets.anyHouse, "8% 33%", "300%"],
+      costumeMatch: [assets.anyHouse, "96% 27%", "255%"],
+      imaginaryCard: [assets.anyHouse, "78% 34%", "245%"],
+      doorKey: [assets.anyHouse, "92% 44%", "280%"],
+      recipeCard: [assets.kitchen, "48% 63%", "390%"],
+      kitchenTimer: [assets.kitchen, "88% 34%", "300%"],
+      spiceJar: [assets.kitchen, "10% 41%", "290%"],
+      cookingPhoto: [assets.kitchen, "48% 63%", "390%"],
+      travelTicket: [assets.kitchen, "70% 54%", "255%"],
+      tableCard: [assets.kitchen, "66% 56%", "260%"],
+      kitchenKey: [assets.kitchen, "20% 59%", "300%"],
+      handwritingMatch: [assets.assembly, "50% 68%", "250%"],
+      fourMemories: [assets.assembly, "50% 70%", "230%"],
+      namedMask: [assets.epilogue, "69% 19%", "270%"]
+    };
+
+    // Each scene object owns a generous rectangular investigation region.
+    // Values are percentages of the visible scene: [width, height].
+    const investigationRegions = {
+      "entrance:nameCards": [28, 22],
+      "entrance:mask": [18, 22],
+      "entrance:pen": [16, 20],
+      "entrance:doors": [30, 38],
+      "ballroom:letter": [18, 17],
+      "ballroom:mask": [16, 20],
+      "ballroom:fox": [25, 68],
+      "ballroom:host": [24, 68],
+      "echo:mirror": [31, 56],
+      "echo:candle": [16, 30],
+      "echo:recorder": [18, 20],
+      "echo:door": [20, 48],
+      "collection:radio": [25, 25],
+      "collection:knife": [16, 19],
+      "collection:buttons": [14, 24],
+      "collection:pins": [13, 24],
+      "collection:drawer": [29, 17],
+      "collection:administrator": [23, 66],
+      "anyHouse:ledger": [29, 30],
+      "anyHouse:costume": [16, 54],
+      "anyHouse:photo": [18, 22],
+      "anyHouse:keyRack": [23, 39],
+      "anyHouse:harbor": [31, 55],
+      "kitchen:recipe": [18, 16],
+      "kitchen:suitcase": [34, 30],
+      "kitchen:timer": [24, 34],
+      "kitchen:spices": [19, 39],
+      "kitchen:administrator": [25, 70],
+      "assembly:cards": [48, 38]
+    };
+
+    const scenes = {
+      invitation: {
+        chapter: 1,
+        title: "序章 · 无名请柬",
+        asset: assets.invitation,
+        objective: "打开请柬，前往假面舞会",
+        intro: [
+          ["旁白", "晚上十一点，一张深黑色请柬从宿舍门缝下滑了进来。"],
+          ["旁白", "烫金文字写着：今晚，礼堂只属于戴面具的人。请带来一样你不再需要伪装的东西。"],
+          ["旁白", "请柬背后没有寄件人，只有四个字——失主委托。"]
+        ],
+        afterIntro: "goEntrance",
+        objects: {}
+      },
+      entrance: {
+        chapter: 1,
+        title: "第一章 · 最后一个签名的人",
+        asset: assets.entrance,
+        objective: "调查入口长桌，完成姓名封存",
+        intro: [
+          ["门卫", "你是今晚最后一位客人。请在入场前写下自己的名字。"],
+          ["玩家", "为什么需要封存姓名？"],
+          ["门卫", "因为今晚没有人会用真名称呼你。舞会结束时，它会被原样归还。"],
+          ["门卫", "桌上的黑色面具不属于普通客人。请不要随意触碰。"]
+        ],
+        afterIntro: "investigate",
+        required: ["nameCards", "mask", "pen"],
+        nextLabel: "完成封存，进入礼堂",
+        nextAction: "goBallroom",
+        objects: {
+          nameCards: {
+            label: "空白名牌与信封",
+            x: 31, y: 78,
+            evidence: "sealedName",
+            lines: [
+              ["旁白", "你写下名字。门卫把名牌装入信封，用火漆封住。"],
+              ["门卫", "在舞会结束以前，没有人可以打开它，包括我。"]
+            ]
+          },
+          mask: {
+            label: "黑色无名面具",
+            x: 52, y: 61,
+            evidence: "blackMask",
+            lines: [
+              ["拾一", "（面具内部传来很轻的敲击声，但此时还没有人注意到。）"],
+              ["玩家", "内侧没有名字，只有一块比周围颜色更浅的方形痕迹。"],
+              ["门卫", "像是曾经贴过一张名牌，但被人取走了。"]
+            ]
+          },
+          pen: {
+            label: "黑金钢笔",
+            x: 22, y: 62,
+            evidence: "invitation",
+            lines: [
+              ["玩家", "笔帽上也有一个很小的四角星。"],
+              ["门卫", "这支笔和请柬都由主办者准备。我不知道图案代表什么。"]
+            ]
+          },
+          doors: {
+            label: "礼堂大门",
+            x: 64, y: 35,
+            lines: [
+              ["门卫", "午夜以后，大门会暂时关闭。想离开的话，最好现在决定。"]
+            ]
+          }
+        }
+      },
+      ballroom: {
+        chapter: 1,
+        title: "第一章 · 午夜的失主委托",
+        asset: assets.ballroom,
+        objective: "调查突然出现的信件与无名面具",
+        intro: [
+          ["旁白", "舞曲停止。礼堂陷入黑暗。"],
+          ["旁白", "灯光重新亮起时，长桌上多了一封三年前写下的信。"],
+          ["主持人", "今晚在场的人中，有一个人已经忘记了自己的名字。"],
+          ["主持人", "按照失主留下的委托，这封信必须交给今晚最后一个完成姓名登记的人。"],
+          ["玩家", "所以调查者是我？"],
+          ["狐狸面具客", "真幸运。或者说，真倒霉。"]
+        ],
+        afterIntro: "investigate",
+        required: ["letter", "mask", "fox"],
+        nextLabel: "接受失主委托",
+        nextAction: "chapter1Complete",
+        objects: {
+          letter: {
+            label: "三年前的信",
+            x: 53, y: 49,
+            evidence: ["ownerLetter", "starBadge"],
+            lines: [
+              ["旁白", "信中要求你调查四个房间：回音阁、收藏室、任意屋和深夜厨房。"],
+              ["旁白", "信封里还夹着一枚四角星徽章，与请柬火漆图案相同。"],
+              ["主持人", "日出以前，如果无人证明失主是谁，与他有关的照片、声音和文字都会消失。"]
+            ]
+          },
+          mask: {
+            label: "正在震动的面具",
+            x: 61, y: 48,
+            lines: [
+              ["旁白", "黑色面具突然剧烈震动。一只纸片大小的精灵从眼孔里钻出来，撞翻了一枚空酒杯。"],
+              ["拾一", "疼疼疼……谁把出口设计在桌面上？"],
+              ["玩家", "你是谁？"],
+              ["拾一", "我记得怎么调查，却忘了自己在找谁。你可以先叫我拾一。"]
+            ]
+          },
+          fox: {
+            label: "狐狸面具客",
+            x: 25, y: 46,
+            lines: [
+              ["狐狸面具客", "失主曾经总是站在镜头外面。"],
+              ["玩家", "你认识失主？"],
+              ["狐狸面具客", "我只说我见过那种人。别急着把每句话都当成证词。"]
+            ]
+          },
+          host: {
+            label: "主持人",
+            x: 74, y: 43,
+            lines: [
+              ["玩家", "既然你认识失主，为什么不直接说名字？"],
+              ["主持人", "知道名字，不代表那个人愿意承认。你需要找到能让他无法否认的证据。"]
+            ]
+          }
+        }
+      },
+      echo: {
+        chapter: 2,
+        title: "第二章 · 镜中的十七秒",
+        asset: assets.echo,
+        objective: "调查九面落地镜、蜡烛与录音机",
+        intro: [
+          ["管理员", "回音阁里有九面带黄铜边框的落地镜。所有可以调查的东西都已经留在原位。"],
+          ["玩家", "你以前进入过这个房间吗？"],
+          ["管理员", "我是今晚才接手这里的管理员。至少，我只记得今晚。"],
+          ["拾一", "这句话听起来很诚实，也很可疑。"]
+        ],
+        afterIntro: "investigate",
+        required: ["mirror", "candle", "recorder"],
+        nextLabel: "使用回音钥匙，进入收藏室",
+        nextAction: "chapter2Complete",
+        objects: {
+          mirror: {
+            label: "中央落地镜",
+            x: 18, y: 47,
+            evidence: "mirrorMark",
+            lines: [
+              ["玩家", "镜面没有异常，但右下角的黄铜包边曾经被人修补。"],
+              ["拾一", "修补处刻着四角星。和请柬上的图案一样。"],
+              ["玩家", "制作请柬的人，也可能修过这面镜子。"]
+            ]
+          },
+          candle: {
+            label: "可移动的蜡烛",
+            x: 42, y: 57,
+            evidence: "candle",
+            lines: [
+              ["拾一", "烛泪只凝固在一侧。它曾被人拿着移动，不是一直放在这里。"],
+              ["玩家", "先收进证物袋。之后或许能用来照出某些痕迹。"]
+            ]
+          },
+          recorder: {
+            label: "旧录音机",
+            x: 51, y: 64,
+            after: "hook1",
+            lines: [
+              ["旁白", "录音机播放出一段三年前录制的声音。"],
+              ["未知声音", "如果你找到了这里，请先回答一个问题。不要给正确答案，只说属于你的答案。"],
+              ["拾一", "录音剩余部分被共鸣锁封住了。要继续播放，我们需要生成第一把钥匙。"]
+            ]
+          },
+          door: {
+            label: "通往走廊的门",
+            x: 85, y: 48,
+            lines: [
+              ["玩家", "门上没有普通锁孔，只有一块蜡烛形状的凹槽。"],
+              ["拾一", "第一张记忆卡也许会变成适合它的钥匙。"]
+            ]
+          }
+        }
+      },
+      collection: {
+        chapter: 3,
+        title: "第三章 · 不会唱完的收音机",
+        asset: assets.collection,
+        objective: "修复收音机，并找出它与回音录音的联系",
+        intro: [
+          ["管理员", "这里的东西不按价格分类，只按主人舍不得丢掉的程度排列。"],
+          ["玩家", "你知道这些东西的主人是谁吗？"],
+          ["管理员", "不知道。所有标签上的名字都已经开始消失。"],
+          ["拾一", "那就趁它们彻底消失以前，让物品自己作证。"]
+        ],
+        afterIntro: "investigate",
+        required: ["radio", "knife", "buttons", "pins", "drawer"],
+        nextLabel: "请狐狸面具客辨认收音机",
+        nextAction: "foxReveal",
+        objects: {
+          radio: {
+            label: "拆开的收音机",
+            x: 44, y: 59,
+            evidence: "brokenRadio",
+            lines: [
+              ["玩家", "后盖螺丝锈死，调频指针的连杆还缺少一根细金属销。"],
+              ["拾一", "先找能打开后盖的工具，以及尺寸合适的替代零件。"]
+            ]
+          },
+          knife: {
+            label: "缠胶带的小刀",
+            x: 61, y: 63,
+            evidence: "tapedKnife",
+            lines: [
+              ["拾一", "别紧张，刀刃早就钝了。"],
+              ["玩家", "刀背很薄，可以当成临时螺丝刀，正好拧开收音机后盖。"]
+            ]
+          },
+          buttons: {
+            label: "纽扣罐",
+            x: 76, y: 58,
+            evidence: "starButton",
+            lines: [
+              ["玩家", "几十枚纽扣里，只有这一枚是黑色四角星形。"],
+              ["拾一", "它看起来不像收音机零件。先留着，也许属于别的房间。"]
+            ]
+          },
+          pins: {
+            label: "细针罐",
+            x: 89, y: 58,
+            evidence: "metalPin",
+            lines: [
+              ["玩家", "这些细针是从旧圆珠笔芯里拆出来的。"],
+              ["拾一", "其中一根的长度和收音机缺失的连杆销几乎一样。"]
+            ]
+          },
+          drawer: {
+            label: "收藏柜隐藏抽屉",
+            x: 51, y: 82,
+            after: "hook2",
+            lines: [
+              ["旁白", "桌面下方藏着一个抽屉。锁孔形状像一只玻璃罐。"],
+              ["拾一", "这是第二道共鸣锁。只有说出一件你真正舍不得的东西，钥匙才会出现。"]
+            ]
+          },
+          administrator: {
+            label: "管理员",
+            x: 20, y: 45,
+            lines: [
+              ["玩家", "录音里的钥匙声，和你腰间的钥匙很像。"],
+              ["管理员", "这些钥匙原本就属于礼堂。任何管理员都会佩戴。"],
+              ["拾一", "解释成立。仅凭声音，还不能证明录音里的人就是管理员。"]
+            ]
+          }
+        }
+      },
+      anyHouse: {
+        chapter: 4,
+        title: "第四章 · 不存在的访客",
+        asset: assets.anyHouse,
+        objective: "调查任意屋，确认服装、照片与入住登记的关系",
+        intro: [
+          ["旁白", "门形钥匙转动以后，潮声从门缝里涌了进来。门后不是礼堂，而是一间停泊在月色里的海边旅店。"],
+          ["管理员", "这里叫任意屋。它接待过所有的船，也接待过不存在的人。"],
+          ["狐狸面具客", "那套Cosplay服装就在右边。三年前，它曾出现在我们的后台。"],
+          ["拾一", "先别急着认人。照片里站在镜头前的人，未必是留下这些东西的人。"]
+        ],
+        afterIntro: "investigate",
+        required: ["ledger", "costume", "photo", "keyRack"],
+        nextLabel: "带上门形钥匙，前往深夜厨房",
+        nextAction: "chapter4Complete",
+        objects: {
+          ledger: {
+            label: "任意屋入住登记",
+            x: 54, y: 54,
+            evidence: "visitorLedger",
+            after: "hook3",
+            lines: [
+              ["玩家", "登记簿上的名字全是故事人物：侦探、骑士、宇航员……没有一个像真实住客。"],
+              ["管理员", "有人替想象中的访客登记，是因为他们也真实地陪伴过那个人。"],
+              ["拾一", "末页的墨迹被门形共鸣锁盖住了。说出一位曾陪伴你的虚构角色，锁才会打开。"]
+            ]
+          },
+          costume: {
+            label: "旧Cosplay服装",
+            x: 93, y: 36,
+            evidence: "cosplayCostume",
+            lines: [
+              ["狐狸面具客", "这件衣服属于我们以前演过的英雄。肩部本来有两枚黑色星形纽扣。"],
+              ["玩家", "现在只剩一枚，缺口的线孔和收藏室那枚纽扣很接近。"],
+              ["拾一", "把纽扣拿到证物栏里与服装直接比对，才能确定它们是否来自同一件衣服。"]
+            ]
+          },
+          photo: {
+            label: "褪色的后台合照",
+            x: 55, y: 29,
+            evidence: "backstagePhoto",
+            lines: [
+              ["旁白", "合照里，狐狸面具客穿着那套服装，身后挤满了演员。"],
+              ["玩家", "画面右下角有一只手正在替服装缝纽扣，但那个人站在镜头外。"],
+              ["狐狸面具客", "修道具的人总替别人拍照，从不肯留下自己的脸。"]
+            ]
+          },
+          keyRack: {
+            label: "港口钥匙架",
+            x: 12, y: 34,
+            evidence: "harborKeyTag",
+            lines: [
+              ["玩家", "每一把钥匙都挂着角色名，只有最下面那块牌子没有名字。"],
+              ["拾一", "背面写着：给每一个想成为别人的人留一间房。字尾总是向右上方挑。"],
+              ["管理员", "记住这个书写习惯。名字会消失，习惯不会。"]
+            ]
+          },
+          harbor: {
+            label: "月光下的港口",
+            x: 77, y: 40,
+            lines: [
+              ["玩家", "外面的船没有一艘靠岸，房间却一直为旅人亮着灯。"],
+              ["拾一", "也许任意屋从来不是让人逃走的地方，而是让人带着喜欢的角色回来。"]
+            ]
+          }
+        }
+      },
+      kitchen: {
+        chapter: 5,
+        title: "第五章 · 没有人入镜的晚餐",
+        asset: assets.kitchen,
+        objective: "调查菜谱、行李箱与厨房旧物，完成最后一张记忆卡",
+        intro: [
+          ["旁白", "门形钥匙落下，海潮声被水壶轻响取代。深夜厨房里只亮着餐桌上方的一盏灯。"],
+          ["管理员", "最后一个房间不保存宏大的愿望，只保存一个人想和谁吃饭、想去哪里。"],
+          ["拾一", "桌上的行李箱锁着。它在等第四张记忆卡。"],
+          ["玩家", "那就先看看这间厨房究竟替失主留下了什么。"]
+        ],
+        afterIntro: "investigate",
+        required: ["recipe", "suitcase", "timer", "spices"],
+        nextLabel: "携带四张记忆卡，进入暗廊",
+        nextAction: "chapter5Complete",
+        objects: {
+          recipe: {
+            label: "手写菜谱卡",
+            x: 48, y: 63,
+            evidence: "recipeCard",
+            lines: [
+              ["玩家", "菜谱写的是很普通的家常炖菜，旁边却把盐量修改了七次。"],
+              ["拾一", "最后一行是：别做成正确的味道，做成那个人记得的味道。"],
+              ["玩家", "字尾同样向右上方挑，和任意屋钥匙牌上的笔迹一致。"]
+            ]
+          },
+          suitcase: {
+            label: "上锁的旧行李箱",
+            x: 69, y: 54,
+            after: "hook4",
+            lines: [
+              ["管理员", "箱锁没有钥匙孔，只有一张餐桌形状的凹槽。"],
+              ["拾一", "最后一道共鸣锁问的不是东西，而是你愿意与谁分享一次晚餐或旅程。"],
+              ["玩家", "回答以后，箱子里保存的东西就会成为最后一组证词。"]
+            ]
+          },
+          timer: {
+            label: "旧厨房计时器",
+            x: 88, y: 34,
+            evidence: "kitchenTimer",
+            lines: [
+              ["旁白", "计时器响起四个音，最后一拍却被人为拆掉。"],
+              ["拾一", "和收音机的旋律一样——失主不喜欢完整结束的提示音。"],
+              ["玩家", "这是习惯的重合，不是直接身份。先记下。"]
+            ]
+          },
+          spices: {
+            label: "四角星香料罐",
+            x: 11, y: 40,
+            evidence: "spiceJar",
+            lines: [
+              ["玩家", "罐底刻着四角星和一个日期：三年前舞会的前一天。"],
+              ["管理员", "那场舞会的餐点由一位不愿署名的志愿者准备。"],
+              ["拾一", "同一个标记再次出现。请柬、镜框、收音机、厨房，确实属于同一条记忆链。"]
+            ]
+          },
+          administrator: {
+            label: "管理员",
+            x: 25, y: 45,
+            lines: [
+              ["玩家", "你知道志愿者是谁吗？"],
+              ["管理员", "名单上的字已经消失。我只记得那个人一直站在餐桌外，看别人吃完。"],
+              ["拾一", "又是镜头外、舞台外、餐桌外。失主习惯把自己的位置让给别人。"]
+            ]
+          }
+        }
+      },
+      shadow: {
+        chapter: 6,
+        title: "第六章 · 不愿被找回的人",
+        asset: assets.shadowCorridor,
+        objective: "面对影子的质询，判断无名面具真正的失主",
+        intro: [
+          ["旁白", "四张记忆卡在掌心发烫。返回礼堂的暗廊里，一个戴黑色面具的人挡住去路。"],
+          ["影子", "找回来了，又能怎样？明天戴上名牌，你还是会变回他们期待的那个人。"],
+          ["影子", "管理员有钥匙，狐狸客认得衣服，主持人知道所有名字。你可以把失主推给任何一个人。"],
+          ["拾一", "不对。证据的重点不是谁接触过物品，而是谁让四道共鸣锁同时回应。"],
+          ["玩家", "轻松不是我来到这里的理由。现在，该回答最核心的问题了。"]
+        ],
+        afterIntro: "identityChoice",
+        objects: {}
+      },
+      assembly: {
+        chapter: 7,
+        title: "第七章 · 四张卡拼成的面具",
+        asset: assets.assembly,
+        objective: "将四张记忆卡拼合，完成失主身份的最后证明",
+        intro: [
+          ["旁白", "影子让开道路。长桌上只剩一支蜡烛，以及四个与房门相同的凹槽。"],
+          ["主持人", "把烛、罐、门与餐桌放回它们的位置。"],
+          ["拾一", "如果我们的推理正确，四张卡会拼出无名面具缺失的那一部分。"]
+        ],
+        afterIntro: "investigate",
+        required: ["cards"],
+        nextLabel: "完成拼合，要求主持人归还姓名",
+        nextAction: "revealOwner",
+        objects: {
+          cards: {
+            label: "四张记忆卡",
+            x: 50, y: 69,
+            evidence: "fourMemories",
+            lines: [
+              ["旁白", "四张卡依次嵌入桌面。烛、罐、门与餐桌的边缘连成一副完整面具。"],
+              ["拾一", "它们不是失主的简历，而是失主愿意承认的四件小事。"],
+              ["玩家", "共鸣锁从未判断我的答案是否像某个人。它们只确认这些答案确实属于我。"]
+            ]
+          }
+        }
+      },
+      finale: {
+        chapter: 8,
+        title: "终幕 · 寻名与交换",
+        asset: assets.finale,
+        objective: "取回封存的姓名，并决定愿意让别人看见哪段记忆",
+        intro: [
+          ["主持人", "失主找到了。它等的人，是你。"],
+          ["旁白", "主持人摘下面具。礼堂里所有灯同时亮起，入口处的信封被逐一送回。"],
+          ["主持人", "名字能证明你来过，却不能概括你是谁。现在，请取回属于你的名字。"],
+          ["玩家", "那副无名面具呢？"],
+          ["主持人", "现在，它也有名字了。它会替你保存那些还没准备好公开，却不该被自己忘记的部分。"],
+          ["狐狸面具客", "选一张你愿意被看到的记忆卡。交换以后，对方只会知道你愿意让他知道的那一段。"],
+          ["拾一", "调查结束。不是因为所有谜题都有唯一答案，而是你终于没有把自己排除在证人之外。"],
+          ["旁白", "全场安静一分钟。没有人追问，也没有人替别人解释。"]
+        ],
+        afterIntro: "goEpilogue",
+        objects: {}
+      },
+      epilogue: {
+        chapter: 0,
+        title: "第〇夜 · 寄回来的初稿",
+        asset: assets.epilogue,
+        objective: "阅读三天后寄回的记忆册",
+        intro: [
+          ["旁白", "三天后，一个牛皮纸包裹出现在窗边。封口仍是那枚四角星。"],
+          ["旁白", "里面有四张记忆卡、一副黑金面具，以及一本用红线装订的小册子。"],
+          ["玩家", "《我是谁》……初稿。"],
+          ["旁白", "扉页只写着一句话：这封信，来自每一个在入学前夜没睡好的人。"],
+          ["拾一", "初稿当然不会是结论。以后想起来新的事，就继续往里面写吧。"]
+        ],
+        afterIntro: "ending",
+        objects: {}
+      }
+    };
+
+    const conversations = {
+      entrance: {
+        "门卫": [
+          {
+            id: "nameSeal",
+            label: "关于姓名封存",
+            lines: [
+              ["玩家", "为什么一定要把名字封进信封？"],
+              ["门卫", "因为人被叫到名字时，会下意识扮演别人认识的那个自己。今晚要先让这种反应安静下来。"],
+              ["门卫", "封存不是抹去。信封一直在你看得见的地方，最后也必须由你亲手取回。"]
+            ]
+          },
+          {
+            id: "namelessMask",
+            label: "关于无名面具",
+            lines: [
+              ["玩家", "桌上为什么多放着一副没有名字的面具？"],
+              ["门卫", "它三年前就留在这里。每次舞会开始前，我都按委托把它放回原位。"],
+              ["门卫", "奇怪的是，它从来不适合任何人的脸。像是在等待某个尚未承认自己的人。"]
+            ]
+          },
+          {
+            id: "threeYears",
+            label: "三年前的登记",
+            requiresTopics: ["nameSeal"],
+            lines: [
+              ["玩家", "三年前也举行过同样的姓名封存？"],
+              ["门卫", "流程相同，但散场后多留下一个没有领取的信封。我只看见封蜡上的四角星，没有打开它。"],
+              ["玩家", "所以失主可能不是忘了登记，而是没有回来领取名字。"]
+            ]
+          },
+          {
+            id: "lastGuest",
+            label: "最后一位客人",
+            requiresTopics: ["threeYears"],
+            requiresFlags: ["gatekeeperMaskPresented"],
+            setFlags: ["entranceTalkCleared"],
+            lines: [
+              ["玩家", "委托为什么要交给今晚最后一个登记的人？"],
+              ["门卫", "三年前留下委托的人也是最后一个完成登记的客人。他说：最后到达的人，最明白站在门外犹豫是什么感觉。"],
+              ["门卫", "我当时以为那只是一句玩笑。现在看来，他是在给未来的自己留下入口。"]
+            ]
+          }
+        ]
+      },
+      ballroom: {
+        "主持人": [
+          {
+            id: "incident",
+            label: "关于失主委托",
+            lines: [
+              ["玩家", "你早就知道这封委托会在午夜出现？"],
+              ["主持人", "我只知道启动条件：最后一位客人封存姓名、无名面具被带进礼堂、舞曲在午夜停止。"],
+              ["主持人", "条件由三年前的人写下，我没有权力替他删改。"]
+            ]
+          },
+          {
+            id: "whyLast",
+            label: "为什么选择我",
+            requiresTopics: ["incident"],
+            lines: [
+              ["玩家", "你可以自己调查，为什么非要把信交给我？"],
+              ["主持人", "因为知道答案的人只能告知姓名，不能替失主认出自己。委托需要一位对旧关系没有预设的人。"],
+              ["主持人", "你是局外人，也是唯一刚刚主动把名字交出去的人。"]
+            ]
+          },
+          {
+            id: "fourRooms",
+            label: "关于四个房间",
+            requiresFlags: ["ownerLetterPresented"],
+            setFlags: ["ballroomHostCleared"],
+            lines: [
+              ["玩家", "四个房间是谁布置的？"],
+              ["主持人", "不是一个晚上完成的。有人先留下物品，后来的人按照烛、罐、门、餐桌四个符号重新分类。"],
+              ["主持人", "这意味着房间可能混有旁人的记忆。你必须证明联系，不能只凭气氛猜测。"]
+            ]
+          }
+        ],
+        "狐狸面具客": [
+          {
+            id: "owner",
+            label: "关于失主",
+            lines: [
+              ["玩家", "你说失主今晚就在场，依据是什么？"],
+              ["狐狸面具客", "因为这封信三年前没有寄出，却准确写着今晚的流程。能让它生效的人只能已经入场。"],
+              ["狐狸面具客", "但别把“在场”误解成“正在看着你”。有些人最擅长忽略自己。"]
+            ]
+          },
+          {
+            id: "yourself",
+            label: "关于狐狸面具客",
+            requiresTopics: ["owner"],
+            lines: [
+              ["玩家", "那你为什么一直给我提示？"],
+              ["狐狸面具客", "因为我认识一个总替别人收拾残局的人。我曾答应他，如果哪天他连自己也收拾不回来，就替他把门指出来。"],
+              ["狐狸面具客", "指出门，不等于把人推进去。剩下的路要由他自己走。"]
+            ]
+          },
+          {
+            id: "outsideFrame",
+            label: "镜头外的人",
+            requiresTopics: ["yourself"],
+            requiresFlags: ["foxBadgePresented"],
+            setFlags: ["ballroomFoxCleared"],
+            lines: [
+              ["狐狸面具客", "他拍过我们每一场演出，却总能避开所有合照。"],
+              ["玩家", "是不喜欢自己的样子？"],
+              ["狐狸面具客", "更像是不相信自己的出现值得占一个位置。那比讨厌镜头麻烦得多。"]
+            ]
+          }
+        ]
+      },
+      echo: {
+        "管理员": [
+          {
+            id: "echoRules",
+            label: "关于回音阁",
+            lines: [
+              ["玩家", "为什么回音阁里放的是镜子和录音？"],
+              ["管理员", "镜子留下当下，录音留下过去。两者摆在一起，是为了检查一个人的叙述有没有把自己删掉。"],
+              ["管理员", "所以镜面没有藏鬼，录音也不会预言。它们只会暴露被忽略的细节。"]
+            ]
+          },
+          {
+            id: "nineMirrors",
+            label: "九面镜子的排列",
+            requiresTopics: ["echoRules"],
+            requiresFlags: ["mirrorMarkPresented"],
+            lines: [
+              ["玩家", "九面镜子为什么只有中央一面修补过？"],
+              ["管理员", "八面用来看完整轮廓，中央一面专门照手。布置者说，人说谎时脸可以不动，手却会先抓紧东西。"],
+              ["拾一", "难怪四角星刻在右下角——那正是手自然垂下时最容易看到的位置。"]
+            ]
+          },
+          {
+            id: "oldRecording",
+            label: "关于十七秒录音",
+            requiresFlags: ["recordingPresented"],
+            lines: [
+              ["玩家", "录音里的声音是你吗？"],
+              ["管理员", "音色相似，但文件早于我接手礼堂。相似不是同一，钥匙声也只能证明录音地点。"],
+              ["管理员", "如果你想指认我，请带来只能属于我的证据。否则这只是诱导。"]
+            ]
+          },
+          {
+            id: "keySound",
+            label: "录音里的钥匙声",
+            requiresTopics: ["oldRecording"],
+            setFlags: ["echoTalkCleared"],
+            lines: [
+              ["玩家", "哪一类钥匙会发出录音里那种轻响？"],
+              ["管理员", "旧礼堂的黄铜总钥匙。三年前每位志愿者都能临时借用，不只管理员。"],
+              ["拾一", "这条信息排除了一个过早结论：钥匙声不能直接等于管理员。"]
+            ]
+          }
+        ],
+        "拾一": [
+          {
+            id: "resonance",
+            label: "关于共鸣锁",
+            lines: [
+              ["玩家", "共鸣锁究竟在验证什么？"],
+              ["拾一", "它不验证答案内容，只验证回答时有没有调用一段真实的个人经历。"],
+              ["拾一", "所以敷衍也可能开锁，但只能生成很薄的卡。说得具体，卡片留下的纹路就更多。"]
+            ]
+          },
+          {
+            id: "shiyiMemory",
+            label: "关于拾一的记忆",
+            requiresTopics: ["resonance"],
+            lines: [
+              ["玩家", "你为什么记得调查方法，却不记得自己？"],
+              ["拾一", "因为我可能不是一个完整的人。我更像被留在面具里的检索顺序：先观察，再连接，最后才命名。"],
+              ["拾一", "至于“拾一”这个名字……是我醒来时看见十一点的钟，临时捡来的。"]
+            ]
+          }
+        ]
+      },
+      collection: {
+        "管理员": [
+          {
+            id: "collectionRules",
+            label: "关于收藏室",
+            lines: [
+              ["玩家", "这里为什么把废旧零件也当成收藏？"],
+              ["管理员", "价格可以由别人决定，舍不得只能由主人决定。收藏室记录的正是后者。"],
+              ["管理员", "一件东西越没用却保存得越久，越可能靠近真正的理由。"]
+            ]
+          },
+          {
+            id: "childCollector",
+            label: "爱拆圆珠笔的孩子",
+            requiresTopics: ["collectionRules"],
+            lines: [
+              ["玩家", "标签上那个收集圆珠笔芯细针的孩子是谁？"],
+              ["管理员", "没有名字。只写着：拆开以后，才知道卡住它的不是魔法。"],
+              ["拾一", "这句话和修收音机的思路一致。失主可能从小就习惯通过拆解消除恐惧。"]
+            ]
+          },
+          {
+            id: "surnameLin",
+            label: "残留的姓氏“林”",
+            requiresFlags: ["repairLabelPresented"],
+            setFlags: ["collectionLabelCleared"],
+            lines: [
+              ["玩家", "你认识姓林的旧礼堂志愿者吗？"],
+              ["管理员", "认识几个。标签也可能写的是委托人、维修店或材料提供者。"],
+              ["管理员", "姓氏是方向，不是终点。没有第二处独立对应以前，别让它绑架推理。"]
+            ]
+          },
+          {
+            id: "melodyReaction",
+            label: "你为什么会接上旋律",
+            requiresFlags: ["melodyPresented"],
+            setFlags: ["collectionTalkCleared"],
+            lines: [
+              ["玩家", "你刚才为什么能哼出收音机缺失的最后一拍？"],
+              ["管理员", "因为这段旋律曾是礼堂闭馆广播。很多人都听过，包括我。"],
+              ["管理员", "我的反应值得记录，但它不能越过证据直接变成身份。"]
+            ]
+          }
+        ],
+        "拾一": [
+          {
+            id: "repairLogic",
+            label: "关于修复顺序",
+            lines: [
+              ["玩家", "为什么一定先修收音机，再对照录音？"],
+              ["拾一", "损坏状态只能证明缺什么，工作状态才能提供可比较的声音。"],
+              ["拾一", "先让证物恢复它原本能做的事，再让它开口作证。"]
+            ]
+          },
+          {
+            id: "notIdentity",
+            label: "旋律为何不能证明身份",
+            requiresEvidence: ["sameMelody"],
+            lines: [
+              ["玩家", "两段旋律完全一致，为什么还不够？"],
+              ["拾一", "它证明录音者熟悉收音机，却没证明只有一个人熟悉。"],
+              ["拾一", "好的证据会缩小可能性；决定性证据必须排除剩余可能性。"]
+            ]
+          }
+        ]
+      },
+      anyHouse: {
+        "管理员": [
+          {
+            id: "anyHouse",
+            label: "关于任意屋",
+            lines: [
+              ["玩家", "为什么这里叫任意屋？"],
+              ["管理员", "因为来访者可以暂时成为任何人，也可以什么都不成为。"],
+              ["管理员", "它不是逃避身份的房间，而是练习选择身份的房间。"]
+            ]
+          },
+          {
+            id: "imaginaryGuests",
+            label: "不存在的访客",
+            requiresTopics: ["anyHouse"],
+            lines: [
+              ["玩家", "登记虚构人物有什么意义？"],
+              ["管理员", "人会从故事里借勇气、语气和判断方式。借来的东西用久了，也会成为真实的一部分。"],
+              ["管理员", "登记不是假装他们来过，而是承认他们确实陪伴过。"]
+            ]
+          },
+          {
+            id: "ledgerHand",
+            label: "登记簿的笔迹",
+            requiresFlags: ["ledgerPresented"],
+            setFlags: ["anyHouseLedgerCleared"],
+            lines: [
+              ["玩家", "这本登记簿为什么只有一种笔迹？"],
+              ["管理员", "因为住客只有一个。那些名字不是不同的人，而是同一个人在不同阶段想靠近的形象。"],
+              ["拾一", "这让登记簿从旅店记录变成了成长记录。"]
+            ]
+          }
+        ],
+        "狐狸面具客": [
+          {
+            id: "costume",
+            label: "关于Cosplay服装",
+            lines: [
+              ["玩家", "这套服装对失主有什么特别？"],
+              ["狐狸面具客", "它是我们第一次正式演出的衣服。预算很少，肩饰、纽扣和道具全由一个人熬夜补出来。"],
+              ["狐狸面具客", "我站在台前，他说自己比较适合待在工具箱旁边。"]
+            ]
+          },
+          {
+            id: "repairer",
+            label: "镜头外的修理者",
+            requiresFlags: ["costumePresented"],
+            lines: [
+              ["玩家", "纽扣已经证明服装和收藏室相连。修理者是谁？"],
+              ["狐狸面具客", "我记得他的姓，也记得声音。但主持人要求我们不能直接替失主报出名字。"],
+              ["狐狸面具客", "那不是故弄玄虚。被别人叫出名字，和自己认出那个人，是两回事。"]
+            ]
+          },
+          {
+            id: "photo",
+            label: "后台合照少了谁",
+            requiresEvidence: ["backstagePhoto"],
+            lines: [
+              ["玩家", "合照里少的就是修理者？"],
+              ["狐狸面具客", "对。他按下定时器以后又跑回相机旁，说要防止镜头倒下。"],
+              ["狐狸面具客", "我们后来才明白，他不是来不及入镜，是提前给自己找好了不入镜的理由。"]
+            ]
+          },
+          {
+            id: "keptPromise",
+            label: "你答应过他的事",
+            requiresTopics: ["repairer"],
+            setFlags: ["anyHouseFoxCleared"],
+            lines: [
+              ["玩家", "你答应过修理者什么？"],
+              ["狐狸面具客", "有一天如果他连自己喜欢什么都说不出来，就把这些东西摆回他看得见的地方。"],
+              ["狐狸面具客", "我做到了前半句。后半句——看见以后要不要承认——谁也替不了他。"]
+            ]
+          }
+        ]
+      },
+      kitchen: {
+        "管理员": [
+          {
+            id: "kitchen",
+            label: "关于深夜厨房",
+            lines: [
+              ["玩家", "失主为什么把最后一段记忆留在厨房？"],
+              ["管理员", "因为做饭很难完全躲在镜头外。味道会暴露偏好，份量会暴露你在等谁。"],
+              ["管理员", "厨房保存的不是厨艺，是一个人愿不愿意为关系留下位置。"]
+            ]
+          },
+          {
+            id: "volunteer",
+            label: "不署名的志愿者",
+            requiresTopics: ["kitchen"],
+            lines: [
+              ["玩家", "三年前准备餐点的志愿者为什么不署名？"],
+              ["管理员", "他说署名会让感谢变成债务。主持人反驳：不署名也可能让自己消失。"],
+              ["管理员", "两个人争了很久，最后只在香料罐底留下四角星。"]
+            ]
+          },
+          {
+            id: "cookingPhoto",
+            label: "照片里的那双手",
+            requiresFlags: ["cookingPhotoPresented"],
+            setFlags: ["kitchenPhotoCleared"],
+            lines: [
+              ["玩家", "做菜照片只拍到手，是失主故意的吗？"],
+              ["管理员", "照片由同行者拍摄。失主看到后没有重拍，只在背面写下提醒。"],
+              ["管理员", "他不满意自己被看见，却又害怕连喜欢的味道也一起忘掉。"]
+            ]
+          },
+          {
+            id: "emptyCompanion",
+            label: "车票上空白的同行人",
+            requiresTopics: ["cookingPhoto"],
+            requiresFlags: ["travelTicketPresented"],
+            setFlags: ["kitchenAdminCleared"],
+            lines: [
+              ["玩家", "车票为什么没有填写同行人？"],
+              ["管理员", "也许他想带的人太重要，写下就等于承认期待。于是他先买票，准备等自己敢说时再补。"],
+              ["拾一", "没有填写不是没有答案。空白本身记录了当时的犹豫。"]
+            ]
+          }
+        ],
+        "拾一": [
+          {
+            id: "fourRooms",
+            label: "四个房间的共同点",
+            lines: [
+              ["玩家", "烛、收藏、角色和餐桌究竟有什么共同点？"],
+              ["拾一", "它们都不是职业、成绩或别人给的称呼，而是没有观众时仍会做出的选择。"],
+              ["拾一", "失主把身份藏在选择里，是因为名字和履历都可能被别人代答。"]
+            ]
+          },
+          {
+            id: "ownerQuestion",
+            label: "谁让四道锁全部回应",
+            requiresFlags: ["handwritingPresented"],
+            setFlags: ["kitchenShiyiCleared"],
+            lines: [
+              ["拾一", "物证已经证明四个房间来自同一条记忆链，但仍有多人接触过这些物品。"],
+              ["玩家", "只有一件事没有第二个人做到：让四道共鸣锁全部生成记忆卡。"],
+              ["拾一", "记住这句话。暗廊里的影子一定会逼你把失主推给更可疑的人。"]
+            ]
+          }
+        ]
+      },
+      assembly: {
+        "主持人": [
+          {
+            id: "cards",
+            label: "关于四张记忆卡",
+            lines: [
+              ["玩家", "四张卡为什么能拼成面具？"],
+              ["主持人", "无名面具不是完整人格，它只是存放记忆的容器。每一次真实回答都会补回一块内衬。"],
+              ["主持人", "外面的面具给别人看，里面的纹路只让佩戴者自己辨认。"]
+            ]
+          },
+          {
+            id: "whySilent",
+            label: "你为什么一直不说",
+            requiresFlags: ["fourMemoriesPresented"],
+            lines: [
+              ["玩家", "你一开始就知道失主是我，为什么不直接说？"],
+              ["主持人", "因为“你是谁”如果只由我宣布，就会变成新的角色安排。"],
+              ["主持人", "我能保护证据与流程，却不能代替你承担那个答案。"]
+            ]
+          },
+          {
+            id: "exchange",
+            label: "关于记忆交换",
+            requiresTopics: ["whySilent"],
+            setFlags: ["assemblyTalkCleared"],
+            lines: [
+              ["玩家", "终幕为什么还要交换记忆卡？"],
+              ["主持人", "找回自己不是把一切公开。交换让每个人练习选择：哪一部分愿意被看到，哪一部分暂时保留。"],
+              ["主持人", "边界也是身份的一部分。"]
+            ]
+          }
+        ]
+      }
+    };
+
+    const presentations = {
+      entrance: {
+        "门卫": {
+          blackMask: {
+            setFlags: ["gatekeeperMaskPresented"],
+            lines: [
+              ["玩家", "请看这副无名面具。内侧的浅色痕迹像不像封存姓名用的卡片？"],
+              ["门卫", "尺寸不一样。姓名卡更窄，这块空缺反而像四张小卡拼在一起。"],
+              ["门卫", "等等……三年前没被领取的信封旁，也放过四张画着符号的卡。你问最后一位客人，也许能把两件事连起来。"],
+              ["旁白", "新的交谈话题出现了。"]
+            ]
+          }
+        }
+      },
+      ballroom: {
+        "主持人": {
+          ownerLetter: {
+            setFlags: ["ownerLetterPresented"],
+            lines: [
+              ["玩家", "这封失主委托把四个房间画成烛、罐、门和餐桌。是谁决定这个顺序？"],
+              ["主持人", "写信的人。管理员只负责把对应物品归位，我负责在条件满足时宣读。"],
+              ["主持人", "既然你已经拿到原信，我可以解释四个房间如何混入了旁人的记忆。"],
+              ["旁白", "主持人新增了一个交谈话题。"]
+            ]
+          }
+        },
+        "狐狸面具客": {
+          starBadge: {
+            setFlags: ["foxBadgePresented"],
+            lines: [
+              ["玩家", "你认得这枚四角星徽章吗？"],
+              ["狐狸面具客", "认得。它不是社团徽章，是某个人修完道具后留下的小记号。"],
+              ["狐狸面具客", "他不爱签名，却总画这颗星。你想知道他为什么总在镜头外，就继续问。"],
+              ["旁白", "狐狸面具客新增了一个交谈话题。"]
+            ]
+          }
+        }
+      },
+      echo: {
+        "管理员": {
+          mirrorMark: {
+            setFlags: ["mirrorMarkPresented"],
+            lines: [
+              ["玩家", "中央镜框修补处刻着四角星。你说所有物品都保持原位，这也包括修补记录吗？"],
+              ["管理员", "包括。记录显示修补者特意改变了九面镜子的角度，却没有留下姓名。"],
+              ["管理员", "我可以告诉你那些角度用于观察什么。"],
+              ["旁白", "关于九面镜子的新话题出现了。"]
+            ]
+          },
+          echoRecording: {
+            setFlags: ["recordingPresented"],
+            lines: [
+              ["玩家", "请听这段十七秒录音。背景里的钥匙声与你腰间的声音相同。"],
+              ["管理员", "相同，但不唯一。三年前的志愿者都能借用这串总钥匙。"],
+              ["管理员", "如果你愿意按证据而不是按怀疑来问，我会正式回答这段录音。"],
+              ["旁白", "关于十七秒录音的新话题出现了。"]
+            ]
+          }
+        }
+      },
+      collection: {
+        "管理员": {
+          repairLabel: {
+            setFlags: ["repairLabelPresented"],
+            lines: [
+              ["玩家", "隐藏抽屉里的维修标签只剩一个姓氏“林”。"],
+              ["管理员", "我见过多个姓林的志愿者，也见过维修店用负责人姓氏做批次标记。"],
+              ["管理员", "这件证物值得追问，但不要把残字当成完整身份。"],
+              ["旁白", "关于姓氏“林”的新话题出现了。"]
+            ]
+          },
+          sameMelody: {
+            setFlags: ["melodyPresented"],
+            lines: [
+              ["玩家", "收音机与录音的旋律已经完成波形对照。你仍坚持只是偶然？"],
+              ["管理员", "我不坚持偶然。我坚持它证明的是熟悉程度，而不是姓名。"],
+              ["管理员", "至于我为什么能接上最后一拍，你可以直接问。"],
+              ["旁白", "管理员新增了一个关于自身反应的话题。"]
+            ]
+          }
+        }
+      },
+      anyHouse: {
+        "管理员": {
+          visitorLedger: {
+            setFlags: ["ledgerPresented"],
+            lines: [
+              ["玩家", "入住登记里全是虚构角色，而且全部出自同一种笔迹。"],
+              ["管理员", "那就别把他们当成不同住客。问问同一个人为什么要一次次登记不同名字。"],
+              ["旁白", "关于登记簿笔迹的新话题出现了。"]
+            ]
+          }
+        },
+        "狐狸面具客": {
+          costumeMatch: {
+            setFlags: ["costumePresented"],
+            lines: [
+              ["玩家", "星形纽扣的针孔和服装肩部缺口完全吻合。收藏室与任意屋已经被物证连接。"],
+              ["狐狸面具客", "那我不能再用“可能只是相似”回避了。修收音机和修这件服装的确是同一个人。"],
+              ["狐狸面具客", "你可以继续问那个总待在镜头外的修理者。"],
+              ["旁白", "狐狸面具客新增了一个关键话题。"]
+            ]
+          }
+        }
+      },
+      kitchen: {
+        "管理员": {
+          cookingPhoto: {
+            setFlags: ["cookingPhotoPresented"],
+            lines: [
+              ["玩家", "这张做菜照片为什么只留下手，却在背面写着“别忘记自己喜欢的味道”？"],
+              ["管理员", "因为失主不想看自己的脸，却又需要一种不会被别人代答的提醒。"],
+              ["管理员", "照片里那双手的故事，我可以告诉你。"],
+              ["旁白", "关于照片的新话题出现了。"]
+            ]
+          },
+          travelTicket: {
+            setFlags: ["travelTicketPresented"],
+            lines: [
+              ["玩家", "同行人一栏空白的海边车票，和做菜照片放在同一只箱子里。"],
+              ["管理员", "它们不是用水壶或其他机关硬连起来的。联系很简单：同一个人把它们放进了写有自己提醒语的信封。"],
+              ["管理员", "先谈完照片里的那双手，再问这处空白。"],
+              ["旁白", "一个需要前置谈话的新话题被记录下来。"]
+            ]
+          }
+        },
+        "拾一": {
+          handwritingMatch: {
+            setFlags: ["handwritingPresented"],
+            lines: [
+              ["玩家", "维修标签、入住登记和菜谱卡的笔迹已经确认一致。"],
+              ["拾一", "很好。现在物证链完整了，但仍有最后一个问题：谁让四道共鸣锁全部回应？"],
+              ["拾一", "这不是修辞题。去交谈菜单里把它说清楚。"],
+              ["旁白", "拾一新增了决定主线走向的话题。"]
+            ]
+          }
+        }
+      },
+      assembly: {
+        "主持人": {
+          fourMemories: {
+            setFlags: ["fourMemoriesPresented"],
+            lines: [
+              ["玩家", "四张记忆卡已经拼入无名面具，边缘完全吻合。你还要保持沉默吗？"],
+              ["主持人", "不再保持。但在我宣告以前，你必须先问清楚：为什么知道答案的人不能直接说。"],
+              ["旁白", "主持人新增了最后两项交谈话题。"]
+            ]
+          }
+        }
+      }
+    };
+
+    const wrongPresentationReplies = {
+      "门卫": "这件东西与入口登记没有直接关系。我不能据此修改证词。",
+      "主持人": "它也许重要，但无法让我补充当前这段证言。请先说明它与问题的直接联系。",
+      "狐狸面具客": "我见过它，但现在拿给我看只会让故事更热闹，不会让推理更准确。",
+      "管理员": "记录中没有这件证物与我的职责发生直接关联。换一件更具体的。",
+      "拾一": "方向不对。出示证物不是碰运气，要找能回答当前矛盾的那一件。"
+    };
+
+    const game = {
+      scene: "title",
+      mode: "title",
+      dialogue: [],
+      dialogueIndex: 0,
+      afterDialogue: null,
+      inspected: {},
+      evidence: [],
+      flags: {},
+      evidenceOpen: false,
+      hookNumber: 0,
+      hookText: "",
+      hookAnswers: {},
+      deductionStep: "owner",
+      talked: {},
+      talkSpeaker: null,
+      presented: {},
+      chapterData: null
+    };
+
+    function addEvidence(ids) {
+      const list = Array.isArray(ids) ? ids : [ids];
+      list.filter(Boolean).forEach(function(id) {
+        if (!game.evidence.includes(id)) game.evidence.push(id);
+      });
+    }
+
+    function sceneState() {
+      return scenes[game.scene] || scenes.invitation;
+    }
+
+    function sceneInspected(key) {
+      return Boolean(game.inspected[game.scene + ":" + key]);
+    }
+
+    function markInspected(key) {
+      game.inspected[game.scene + ":" + key] = true;
+    }
+
+    function conversationGroups() {
+      return conversations[game.scene] || {};
+    }
+
+    function talkKey(speaker, topicId) {
+      return game.scene + ":" + speaker + ":" + topicId;
+    }
+
+    function topicAvailable(speaker, topic) {
+      const topicRequirements = topic.requiresTopics || [];
+      const evidenceRequirements = topic.requiresEvidence || [];
+      const flagRequirements = topic.requiresFlags || [];
+      return topicRequirements.every(function(id) { return Boolean(game.talked[talkKey(speaker, id)]); }) &&
+        evidenceRequirements.every(function(id) { return game.evidence.includes(id); }) &&
+        flagRequirements.every(function(id) { return Boolean(game.flags[id]); });
+    }
+
+    function availableTopics(speaker) {
+      return (conversationGroups()[speaker] || []).filter(function(topic) {
+        return topicAvailable(speaker, topic);
+      });
+    }
+
+    function unreadTalkCount() {
+      return Object.keys(conversationGroups()).reduce(function(total, speaker) {
+        return total + availableTopics(speaker).filter(function(topic) {
+          return !game.talked[talkKey(speaker, topic.id)];
+        }).length;
+      }, 0);
+    }
+
+    function openTalk(speaker) {
+      const speakers = Object.keys(conversationGroups());
+      if (!speakers.length) return;
+      game.talkSpeaker = speakers.includes(speaker) ? speaker : (speakers.includes(game.talkSpeaker) ? game.talkSpeaker : speakers[0]);
+      game.mode = "talk";
+      render();
+    }
+
+    function closeTalk() {
+      game.mode = "investigate";
+      render();
+    }
+
+    function discussTopic(topicId) {
+      const speaker = game.talkSpeaker;
+      const topic = (conversationGroups()[speaker] || []).find(function(item) { return item.id === topicId; });
+      if (!topic || !topicAvailable(speaker, topic)) return;
+      game.talked[talkKey(speaker, topic.id)] = true;
+      (topic.setFlags || []).forEach(function(flag) { game.flags[flag] = true; });
+      triggerDialogue(topic.lines, "returnToTalk");
+    }
+
+    function presentationKey(evidenceId) {
+      return game.scene + ":" + game.talkSpeaker + ":" + evidenceId;
+    }
+
+    function openPresentation() {
+      if (!game.talkSpeaker || !game.evidence.length) return;
+      game.mode = "present";
+      render();
+    }
+
+    function presentEvidence(evidenceId) {
+      if (!game.evidence.includes(evidenceId)) return;
+      const rules = presentations[game.scene]?.[game.talkSpeaker] || {};
+      const rule = rules[evidenceId];
+      if (!rule) {
+        const item = evidenceCatalog[evidenceId] || [evidenceId, ""];
+        triggerDialogue([
+          ["玩家", "关于《" + item[0] + "》，你能提供新的信息吗？"],
+          [game.talkSpeaker, wrongPresentationReplies[game.talkSpeaker] || "这件证物无法让我补充当前证言。"]
+        ], "returnToPresent");
+        return;
+      }
+      game.presented[presentationKey(evidenceId)] = true;
+      (rule.setFlags || []).forEach(function(flag) { game.flags[flag] = true; });
+      triggerDialogue(rule.lines, "returnToTalk");
+    }
+
+    function setScene(id) {
+      const scene = scenes[id];
+      game.scene = id;
+      game.mode = "dialogue";
+      game.evidenceOpen = false;
+      game.talkSpeaker = null;
+      game.dialogue = scene.intro.slice();
+      game.dialogueIndex = 0;
+      game.afterDialogue = scene.afterIntro;
+      render();
+    }
+
+    function startGame() {
+      addEvidence("invitation");
+      setScene("invitation");
+    }
+
+    function triggerDialogue(lines, after) {
+      game.mode = "dialogue";
+      game.dialogue = lines.slice();
+      game.dialogueIndex = 0;
+      game.afterDialogue = after || "investigate";
+      render();
+    }
+
+    function advanceDialogue() {
+      if (game.dialogueIndex < game.dialogue.length - 1) {
+        game.dialogueIndex += 1;
+        render();
+        return;
+      }
+      const action = game.afterDialogue || "investigate";
+      runAction(action);
+    }
+
+    function inspectObject(key) {
+      const scene = sceneState();
+      const object = scene.objects[key];
+      if (!object) return;
+      markInspected(key);
+      addEvidence(object.evidence);
+      triggerDialogue(object.lines, object.after || "investigate");
+    }
+
+    function openHook(number) {
+      if (game.flags["hook" + number]) {
+        game.mode = "investigate";
+        render();
+        return;
+      }
+      game.mode = "hook";
+      game.hookNumber = number;
+      game.hookText = "";
+      render();
+    }
+
+    function submitHook() {
+      if (!game.hookText.trim()) return;
+      const n = game.hookNumber;
+      game.hookAnswers[n] = game.hookText.trim();
+      game.flags["hook" + n] = true;
+      if (n === 1) {
+        addEvidence(["freedomCard", "echoRecording", "echoKey"]);
+        triggerDialogue([
+          ["拾一", "答案没有被评判。它只是被记住了。"],
+          ["旁白", "你的回答凝成一张记忆卡，又折叠成一把蜡烛形钥匙。"],
+          ["未知声音", "以前属于我的下午，常常用来修理会发出声音的东西。尤其是一台旧收音机。"],
+          ["旁白", "录音末尾有十七秒空白。空白中传来轻微哼唱，以及钥匙互相碰撞的声音。"],
+          ["玩家", "录音创建于三年前。哼唱者和收藏室里的收音机，可能属于同一个人。"]
+        ], "investigate");
+      } else if (n === 2) {
+        addEvidence(["collectionCard", "collectionKey", "repairLabel"]);
+        triggerDialogue([
+          ["拾一", "你舍不得的东西成为第二张记忆卡。玻璃罐形状的钥匙落进锁孔。"],
+          ["旁白", "隐藏抽屉打开，里面是一张从收音机底部脱落的维修标签。"],
+          ["玩家", "标签上的名字只剩一个姓氏——林。旁边同样画着四角星。"],
+          ["拾一", "制作请柬、修补镜子和维修收音机的人，留下了相同的个人标记。"]
+        ], "investigate");
+      } else if (n === 3) {
+        addEvidence(["imaginaryCard", "doorKey"]);
+        triggerDialogue([
+          ["拾一", "你的答案没有被改写。登记簿只是为那位访客留出了一行。"],
+          ["旁白", "墨迹沿着纸页边缘汇成一张门形记忆卡，又折成一把蓝色钥匙。"],
+          ["玩家", "登记簿末页写着：我不是想成为他们，我只是借他们的勇气，看清自己的轮廓。"],
+          ["狐狸面具客", "这句话我见过。三年前，修道具的人把它写在Cosplay服装的内衬里。"],
+          ["拾一", "先完成纽扣与服装的比对。只有尺寸和针脚都吻合，这条证词才站得住。"]
+        ], "investigate");
+      } else if (n === 4) {
+        addEvidence(["cookingPhoto", "travelTicket", "tableCard", "kitchenKey"]);
+        triggerDialogue([
+          ["拾一", "你愿意分享的那顿饭或那段旅程，成为第四张餐桌记忆卡。"],
+          ["旁白", "卡片嵌入锁面。行李箱打开，里面没有贵重物品，只有一张做菜照片和一张从未使用的海边车票。"],
+          ["玩家", "照片只拍到一双沾着面粉的手。背面写着：别忘记自己喜欢的味道。"],
+          ["管理员", "旅行票的同行人一栏是空的。也许失主不是没有想带的人，只是当时不敢写下。"],
+          ["拾一", "现在，把菜谱卡、入住登记和收音机维修标签放在一起比对笔迹。"]
+        ], "investigate");
+      }
+    }
+
+    function repairRadio() {
+      if (game.flags.repaired) return;
+      game.flags.repaired = true;
+      game.evidenceOpen = false;
+      addEvidence("repairedRadio");
+      triggerDialogue([
+        ["旁白", "你用钝化小刀拧开后盖，将金属细针装进缺失的连杆位置。"],
+        ["旁白", "调频指针重新移动。收音机发出沙沙声，随后播放出一段短旋律。"],
+        ["管理员", "……"],
+        ["拾一", "管理员刚才是不是在旋律停止以后，哼出了最后一个音？"],
+        ["玩家", "先别下结论。我们需要把它与回音阁录音进行直接对照。"]
+      ], "investigate");
+    }
+
+    function compareMelody() {
+      if (game.flags.melodyMatched) return;
+      game.flags.melodyMatched = true;
+      game.evidenceOpen = false;
+      addEvidence("sameMelody");
+      triggerDialogue([
+        ["旁白", "你先播放回音阁的十七秒录音，再播放修复后的收音机。"],
+        ["拾一", "音符顺序、停顿位置和最后缺失的一拍完全一致。"],
+        ["玩家", "录音里哼唱的人，非常熟悉这台收音机。"],
+        ["管理员", "这只能证明录音者听过它，不能证明身份。"],
+        ["玩家", "没错。但至少四个房间并不是毫无关系的随机陈列。"]
+      ], "investigate");
+    }
+
+    function matchCostume() {
+      if (game.flags.costumeMatched) return;
+      game.flags.costumeMatched = true;
+      game.evidenceOpen = false;
+      addEvidence("costumeMatch");
+      triggerDialogue([
+        ["旁白", "你把收藏室里的黑色星形纽扣放到服装肩部缺口旁。"],
+        ["玩家", "线孔间距、残留黑线和纽扣边缘的磨损方向全部吻合。"],
+        ["狐狸面具客", "异议不了。它确实从这件衣服上脱落。"],
+        ["拾一", "收藏室与任意屋由一件真实物品连接起来了。修收音机和修服装的人，很可能是同一个人。"]
+      ], "investigate");
+    }
+
+    function compareHandwriting() {
+      if (game.flags.handwritingMatched) return;
+      game.flags.handwritingMatched = true;
+      game.evidenceOpen = false;
+      addEvidence("handwritingMatch");
+      triggerDialogue([
+        ["旁白", "你并排放下维修标签、任意屋入住登记和手写菜谱卡。"],
+        ["玩家", "三处文字的收笔都向右上方挑，四角星也先画竖线、再补横线。"],
+        ["管理员", "可以确认是同一只手。但“林”只是残留的一个姓，还不能证明那个人就在这里。"],
+        ["拾一", "没错。物证串起了房间，真正指向失主的，是四道锁选择回应了谁。"]
+      ], "investigate");
+    }
+
+    function openDeduction(step) {
+      game.deductionStep = step;
+      game.mode = "deduction";
+      render();
+    }
+
+    function wrongDeduction(lines, returnStep) {
+      triggerDialogue(lines, returnStep);
+    }
+
+    function runAction(action) {
+      if (action === "investigate") {
+        game.mode = "investigate";
+        render();
+      } else if (action === "returnToTalk") {
+        openTalk(game.talkSpeaker);
+      } else if (action === "returnToPresent") {
+        openPresentation();
+      } else if (action === "goEntrance") {
+        setScene("entrance");
+      } else if (action === "goBallroom") {
+        setScene("ballroom");
+      } else if (action === "hook1") {
+        openHook(1);
+      } else if (action === "hook2") {
+        openHook(2);
+      } else if (action === "hook3") {
+        openHook(3);
+      } else if (action === "hook4") {
+        openHook(4);
+      } else if (action === "chapter1Complete") {
+        showChapter(1);
+      } else if (action === "chapter2Complete") {
+        showChapter(2);
+      } else if (action === "foxReveal") {
+        triggerDialogue([
+          ["旁白", "修复后的收音机再次响起。门外的狐狸面具客突然推门进来。"],
+          ["狐狸面具客", "把它关掉。"],
+          ["玩家", "你认识这台收音机？"],
+          ["狐狸面具客", "它以前总出现在我们的后台录像里。负责修道具的人不喜欢出镜。"],
+          ["玩家", "那个人叫什么？"],
+          ["狐狸面具客", "我不能确定。但这枚黑色星形纽扣……来自一套我曾经穿过的Cosplay服装。"],
+          ["狐狸面具客", "如果你一定要继续，就去任意屋找那套衣服。只是别太相信照片里站在镜头前的人。"],
+          ["拾一", "第三扇门的图案亮了。我们找到的不是名字，而是一条通往名字的路。"]
+        ], "chapter3Complete");
+      } else if (action === "chapter3Complete") {
+        showChapter(3);
+      } else if (action === "chapter4Complete") {
+        showChapter(4);
+      } else if (action === "chapter5Complete") {
+        showChapter(5);
+      } else if (action === "identityChoice") {
+        openDeduction("owner");
+      } else if (action === "accuseAdministrator") {
+        wrongDeduction([
+          ["玩家", "异议！失主是管理员。录音里有钥匙声，他也会哼那段旋律。"],
+          ["影子", "钥匙属于职位，旋律可以被听见。你证明了他接触过线索，却没有证明四道锁为何回应你。"],
+          ["拾一", "推理还缺少决定性的一步。再想想，谁亲自生成了四张记忆卡？"]
+        ], "identityChoice");
+      } else if (action === "accuseFox") {
+        wrongDeduction([
+          ["玩家", "异议！失主是狐狸面具客。他认识服装，也认得收音机。"],
+          ["狐狸面具客", "我在照片里，也在那些回忆旁边。但认识一个人的物品，不等于拥有那个人的记忆。"],
+          ["拾一", "证人知道得多，所以可疑；但“可疑”不是身份。再检查共鸣锁的共同条件。"]
+        ], "identityChoice");
+      } else if (action === "accusePlayer") {
+        triggerDialogue([
+          ["玩家", "失主是我。"],
+          ["影子", "只因为你碰巧回答了四个问题？这不是证据，只是自我感动。"],
+          ["拾一", "那就提交能解释四道锁、封存姓名和无名面具的决定性证物。"]
+        ], "identityProof");
+      } else if (action === "identityProof") {
+        openDeduction("proof");
+      } else if (action === "proveLabel") {
+        wrongDeduction([
+          ["玩家", "决定性证物是收音机维修标签。上面残留了姓氏“林”。"],
+          ["影子", "它只能说明维修者可能姓林。你甚至没有证明失主一定等于维修者。"],
+          ["拾一", "标签连接了物品，却没有解释为什么失主的面具会等待今晚最后一个签名的人。"]
+        ], "identityProof");
+      } else if (action === "proveMelody") {
+        wrongDeduction([
+          ["玩家", "决定性证物是相同旋律。失主熟悉收音机。"],
+          ["影子", "熟悉旋律的人不止一个。狐狸客听过，管理员也能哼。"],
+          ["拾一", "旋律证明房间相连，不足以从所有人中只指向一个。"]
+        ], "identityProof");
+      } else if (action === "proveMemories") {
+        triggerDialogue([
+          ["玩家", "决定性证物是四张记忆卡，以及入口处封存的姓名。"],
+          ["玩家", "每道锁的问题都不同，却只在我说出真实经历后开启。它们保存的不是标准答案，而是失主愿意承认的选择。"],
+          ["拾一", "无名面具内侧缺少的，正是四张卡拼成的那一部分。入口信封又保存着同一个人的名字。"],
+          ["影子", "……如果承认了，明天别人仍可能看不懂你。"],
+          ["玩家", "但我至少不会再替他们先把自己忘掉。"],
+          ["旁白", "黑色面具从影子脸上裂开。里面没有另一张脸，只有一条通往礼堂的路。"]
+        ], "chapter6Complete");
+      } else if (action === "chapter6Complete") {
+        showChapter(6);
+      } else if (action === "revealOwner") {
+        addEvidence("namedMask");
+        triggerDialogue([
+          ["旁白", "完整的卡片面具与黑色无名面具重叠，内侧那块浅色空缺被严丝合缝地填满。"],
+          ["主持人", "证据成立。失主不是管理员，不是狐狸面具客，也不是三年前某个只留下姓氏的人。"],
+          ["主持人", "失主是今晚亲手封存姓名、又亲手取回四段记忆的你。"],
+          ["玩家", "所以我不是在替陌生人找名字，而是在证明名字下面还有什么。"],
+          ["拾一", "现在可以要求主持人把姓名归还了。"]
+        ], "chapter7Complete");
+      } else if (action === "chapter7Complete") {
+        showChapter(7);
+      } else if (action === "goEpilogue") {
+        setScene("epilogue");
+      } else if (action === "ending") {
+        game.mode = "ending";
+        render();
+      } else if (action === "nextChapter") {
+        const nextScenes = {
+          1: "echo",
+          2: "collection",
+          3: "anyHouse",
+          4: "kitchen",
+          5: "shadow",
+          6: "assembly",
+          7: "finale"
+        };
+        if (nextScenes[game.chapterData]) setScene(nextScenes[game.chapterData]);
+      } else if (action === "restart") {
+        game.scene = "title";
+        game.mode = "title";
+        game.dialogue = [];
+        game.dialogueIndex = 0;
+        game.afterDialogue = null;
+        game.inspected = {};
+        game.evidence = [];
+        game.flags = {};
+        game.evidenceOpen = false;
+        game.hookNumber = 0;
+        game.hookText = "";
+        game.hookAnswers = {};
+        game.deductionStep = "owner";
+        game.talked = {};
+        game.talkSpeaker = null;
+        game.presented = {};
+        game.chapterData = null;
+        render();
+      }
+    }
+
+    function showChapter(number) {
+      game.chapterData = number;
+      game.mode = "chapter";
+      render();
+    }
+
+    function isSceneComplete() {
+      const scene = sceneState();
+      if (!scene.required) return false;
+      const inspected = scene.required.every(function(key) { return sceneInspected(key); });
+      if (!inspected) return false;
+      if (game.scene === "entrance") return Boolean(game.flags.entranceTalkCleared);
+      if (game.scene === "ballroom") return Boolean(game.flags.ballroomHostCleared && game.flags.ballroomFoxCleared);
+      if (game.scene === "echo") return Boolean(game.flags.hook1 && game.flags.echoTalkCleared);
+      if (game.scene === "collection") {
+        return Boolean(game.flags.hook2 && game.flags.repaired && game.flags.melodyMatched && game.flags.collectionLabelCleared && game.flags.collectionTalkCleared);
+      }
+      if (game.scene === "anyHouse") return Boolean(game.flags.hook3 && game.flags.costumeMatched && game.flags.anyHouseLedgerCleared && game.flags.anyHouseFoxCleared);
+      if (game.scene === "kitchen") return Boolean(game.flags.hook4 && game.flags.handwritingMatched && game.flags.kitchenAdminCleared && game.flags.kitchenShiyiCleared);
+      if (game.scene === "assembly") return Boolean(game.flags.assemblyTalkCleared);
+      return true;
+    }
+
+    function progressionHint() {
+      const scene = sceneState();
+      const pendingObjects = (scene.required || []).filter(function(key) { return !sceneInspected(key); });
+      if (pendingObjects.length) return "调查模式 · 移动放大镜，调查黄色区域（还剩 " + pendingObjects.length + " 处）";
+      if (game.scene === "collection" && !game.flags.repaired) return "关联线索 · 打开证物栏，用钝化小刀与金属细针修复旧收音机";
+      if (game.scene === "collection" && !game.flags.melodyMatched) return "关联线索 · 在证物栏对比修复后的收音机与十七秒录音";
+      if (game.scene === "anyHouse" && !game.flags.costumeMatched) return "关联线索 · 在证物栏对比四角星纽扣与黑色服装";
+      if (game.scene === "kitchen" && !game.flags.handwritingMatched) return "关联线索 · 在证物栏对比维修标签、入住登记与手写菜谱";
+      const hints = {
+        entrance: "线索不足 · 与门卫交谈，并把无名面具出示给他",
+        ballroom: "继续问话 · 分别向主持人与狐狸面具客出示相关证物",
+        echo: "录音已经取得 · 向管理员出示十七秒录音，追问钥匙的声音",
+        collection: "关联证物成立 · 向管理员出示维修标签与旋律对照",
+        anyHouse: "两个证人都在隐瞒 · 分别出示入住登记与服装比对",
+        kitchen: "身份链只差口供 · 向管理员和拾一出示照片、车票与笔迹",
+        assembly: "最后的质询 · 向主持人出示四张记忆卡"
+      };
+      return hints[game.scene] || "调查完成 · 检查交谈与证物栏，推进案件";
+    }
+
+    function conversationStepReady() {
+      const scene = sceneState();
+      const objectsDone = (scene.required || []).every(function(key) { return sceneInspected(key); });
+      if (!objectsDone || isSceneComplete()) return false;
+      if (game.scene === "echo") return Boolean(game.flags.hook1);
+      if (game.scene === "collection") return Boolean(game.flags.repaired && game.flags.melodyMatched);
+      if (game.scene === "anyHouse") return Boolean(game.flags.costumeMatched);
+      if (game.scene === "kitchen") return Boolean(game.flags.handwritingMatched);
+      return ["entrance", "ballroom", "assembly"].includes(game.scene);
+    }
+
+    function chapterTitle() {
+      const c = sceneState().chapter;
+      return {
+        0: "第〇夜",
+        1: "第一章",
+        2: "第二章",
+        3: "第三章",
+        4: "第四章",
+        5: "第五章",
+        6: "第六章",
+        7: "第七章",
+        8: "终幕"
+      }[c] || "失名之夜";
+    }
+
+    function chapterSteps() {
+      const currentChapter = sceneState().chapter || 1;
+      const names = ["最后一个签名的人", "镜中的十七秒", "不会唱完的收音机", "不存在的访客", "没有人入镜的晚餐", "不愿被找回的人", "四张卡拼成的面具"];
+      return names.map(function(name, i) {
+        const n = i + 1;
+        const cls = n < currentChapter ? "done" : n === currentChapter ? "active" : "";
+        return '<div class="chapter-step ' + cls + '"><span class="step-index">' + n + '</span><span>' + name + '</span></div>';
+      }).join("");
+    }
+
+    function evidenceCountForScene() {
+      const scene = sceneState();
+      const total = scene.required ? scene.required.length : 0;
+      const done = scene.required ? scene.required.filter(sceneInspected).length : 0;
+      return [done, total];
+    }
+
+    function poseIndexFor(speaker, text) {
+      if (speaker === "拾一") {
+        if (text.includes("面具内部") || text.includes("敲击声")) return 0;
+        if (text.includes("疼疼疼")) return 1;
+        if (text.includes("？") || text.includes("先") || text.includes("需要")) return 2;
+        if (text.includes("不是") || text.includes("突然") || text.includes("亮了")) return 3;
+        return 1 + (game.dialogueIndex % 3);
+      }
+      if (text.includes("？")) return 1;
+      if (text.includes("不知道") || text.includes("不能") || text.includes("别") || text.includes("关闭")) return 3;
+      if (text.includes("信") || text.includes("请柬") || text.includes("名字") || text.includes("名牌")) return 2;
+      const seed = Array.from(text).reduce(function(sum, char) { return sum + char.charCodeAt(0); }, 0);
+      return (seed + game.dialogueIndex + speaker.length) % 4;
+    }
+
+    function renderPortrait(speaker, text) {
+      const art = speaker === "拾一" ? assets.shiyi : speakerArt[speaker];
+      if (!art) return '<div class="portrait sprite"><span class="sprite-mark">✦</span></div>';
+      const pose = poseIndexFor(speaker, text);
+      const x = (pose * 100 / 3).toFixed(3);
+      const cls = speaker === "拾一" ? "portrait shiyi-portrait" : "portrait";
+      return '<div class="' + cls + '" data-pose="' + pose + '" style="background-image:url(' + art + ');background-position-x:' + x + '%"></div>';
+    }
+
+    function speakerSlug(speaker) {
+      return {
+        "门卫": "gatekeeper",
+        "狐狸面具客": "fox",
+        "管理员": "administrator",
+        "主持人": "host",
+        "影子": "shadow",
+        "拾一": "shiyi"
+      }[speaker] || "none";
+    }
+
+    function renderStageSpeaker() {
+      if (game.mode !== "dialogue") return "";
+      const line = game.dialogue[game.dialogueIndex] || ["", ""];
+      const speaker = line[0];
+      const text = line[1];
+      const art = speaker === "拾一" ? assets.shiyi : speakerArt[speaker];
+      if (!art) return "";
+      if (speaker === "拾一" && game.scene === "ballroom" && text.includes("疼疼疼")) return "";
+      const pose = poseIndexFor(speaker, text);
+      const x = (pose * 100 / 3).toFixed(3);
+      const blinkDelay = (.25 + ((text.length + pose) % 8) * .06).toFixed(2);
+      return '<div class="stage-speaker speaker-' + speakerSlug(speaker) + '" data-pose="' + pose + '" style="background-image:url(' + art + ');--sprite-x:' + x + '%;--blink-delay:' + blinkDelay + 's">' +
+        '<span class="blink-pair" aria-hidden="true"><i></i><i></i></span>' +
+      '</div>';
+    }
+
+    function formatDialogue(text) {
+      let formatted = text
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
+      const keywords = [
+        "最后一个完成姓名登记的人", "最后一个签名的人", "今晚没有人会用真名", "三处笔迹一致",
+        "四张记忆卡", "决定性证物", "黑色星形纽扣", "十七秒录音", "无名面具",
+        "姓名归还", "原样归还", "入住登记", "维修标签", "做菜照片", "相同旋律",
+        "失主是我", "证据成立", "完全一致", "日出以前", "都会消失", "钥匙声",
+        "共鸣锁", "四角星", "Cosplay", "异议", "失主", "真名", "名字", "姓名", "姓氏", "林"
+      ].sort(function(a, b) { return b.length - a.length; });
+      const escapedKeywords = keywords.map(function(word) {
+        return word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      });
+      return formatted.replace(new RegExp("(" + escapedKeywords.join("|") + ")", "g"), '<em class="dialogue-keyword">$1</em>');
+    }
+
+    function emotionClass() {
+      if (game.mode !== "dialogue") return "";
+      const text = (game.dialogue[game.dialogueIndex] || ["", ""])[1];
+      if (/剧烈震动|疼疼疼|把它关掉|都会消失|完全一致|图案亮了|无法否认|异议|失主是我|裂开|证据成立/.test(text)) return " emotion-strong";
+      if (/突然|忘记了自己的名字|你是谁|不能确定|不属于普通客人|最后一个音|挡住去路|决定性证物|归还/.test(text)) return " emotion-hit";
+      return "";
+    }
+
+    function renderShiyiEntrance() {
+      if (game.mode !== "dialogue" || game.scene !== "ballroom") return "";
+      const line = game.dialogue[game.dialogueIndex] || ["", ""];
+      return line[0] === "拾一" && line[1].includes("疼疼疼")
+        ? '<div class="shiyi-emergence" aria-hidden="true"></div>'
+        : "";
+    }
+
+    function renderDialogue() {
+      if (game.mode !== "dialogue") return "";
+      const line = game.dialogue[game.dialogueIndex] || ["旁白", ""];
+      return '<section class="dialogue-wrap" aria-live="polite">' +
+        '<div class="dialogue-copy">' +
+          '<div class="speaker-row"><span class="speaker-name">' + line[0] + '</span><span class="speaker-line"></span></div>' +
+          '<p class="dialogue-text">' + formatDialogue(line[1]) + '</p>' +
+        '</div>' +
+        '<div class="dialogue-actions">' +
+          '<span class="dialogue-counter">' + (game.dialogueIndex + 1) + ' / ' + game.dialogue.length + '</span>' +
+          '<button class="advance-button" data-action="advance">继续</button>' +
+        '</div>' +
+      '</section>';
+    }
+
+    function renderTalkButton() {
+      const speakers = Object.keys(conversationGroups());
+      if (game.mode !== "investigate" || !speakers.length) return "";
+      const unread = unreadTalkCount();
+      const label = speakers.length === 1 ? "与" + speakers[0] + "交谈" : "交谈";
+      return '<button class="talk-button' + (conversationStepReady() ? ' is-required' : '') + '" data-action="open-talk" aria-label="' + label + '">' +
+        '<span class="talk-icon" aria-hidden="true"></span>' +
+        '<span>' + label + '</span>' +
+        '<span class="talk-count" aria-label="' + unread + '个未谈话题">' + unread + '</span>' +
+      '</button>';
+    }
+
+    function renderProgressionTip() {
+      if (game.mode !== "investigate") return "";
+      const hint = progressionHint();
+      if (conversationStepReady()) {
+        return '<button class="investigate-tip is-action" data-action="open-talk">' + hint + '<strong>点击交谈 ›</strong></button>';
+      }
+      return '<div class="investigate-tip">' + hint + '</div>';
+    }
+
+    function renderTalkMenu() {
+      if (game.mode !== "talk") return "";
+      const groups = conversationGroups();
+      const speakers = Object.keys(groups);
+      const speaker = speakers.includes(game.talkSpeaker) ? game.talkSpeaker : speakers[0];
+      const topics = availableTopics(speaker);
+      const tabs = speakers.length > 1
+        ? '<div class="talk-speakers" role="tablist" aria-label="选择交谈对象">' + speakers.map(function(name) {
+            return '<button class="talk-speaker-tab' + (name === speaker ? ' active' : '') + '" data-action="select-talk-speaker" data-speaker="' + name + '" role="tab" aria-selected="' + (name === speaker) + '">' + name + '</button>';
+          }).join('') + '</div>'
+        : '';
+      const rows = topics.map(function(topic, index) {
+        const read = Boolean(game.talked[talkKey(speaker, topic.id)]);
+        const unlocked = !read && Boolean((topic.requiresTopics || []).length || (topic.requiresEvidence || []).length || (topic.requiresFlags || []).length);
+        return '<button class="talk-topic' + (read ? ' is-read' : '') + (unlocked ? ' is-new' : '') + '" style="--topic-index:' + index + '" data-action="talk-topic" data-topic="' + topic.id + '">' +
+          '<span class="topic-state" aria-hidden="true">✓</span>' +
+          '<span class="topic-label">' + topic.label + '</span>' +
+          (unlocked ? '<span class="topic-new">NEW</span>' : '<span></span>') +
+        '</button>';
+      }).join('');
+      return '<div class="talk-overlay">' +
+        '<section class="talk-menu" aria-label="交谈话题">' +
+          '<div class="talk-menu-heading">与' + speaker + '交谈</div>' +
+          tabs +
+          '<div class="talk-topic-list">' + rows + '</div>' +
+          '<div class="talk-menu-footer"><span>证词会随着追问与出示证物不断更新；带 NEW 的话题可以推进案件。</span><div class="talk-footer-actions"><button class="present-button" data-action="open-presentation">出示证物</button><button class="talk-close" data-action="close-talk">返回调查</button></div></div>' +
+        '</section>' +
+      '</div>';
+    }
+
+    function renderPresentationMenu() {
+      if (game.mode !== "present") return "";
+      const speaker = game.talkSpeaker;
+      const cards = game.evidence.slice().reverse().map(function(id, index) {
+        const item = evidenceCatalog[id] || [id, ""];
+        const shown = Boolean(game.presented[presentationKey(id)]);
+        return '<button class="present-evidence' + (shown ? ' is-presented' : '') + '" style="--present-index:' + index + '" data-action="present-evidence" data-evidence="' + id + '">' +
+          evidenceIcon(id) +
+          '<strong>' + item[0] + '</strong>' +
+          (shown ? '<span>已出示</span>' : '') +
+        '</button>';
+      }).join("");
+      return '<div class="presentation-overlay">' +
+        '<section class="presentation-menu" aria-label="向' + speaker + '出示证物">' +
+          '<header class="presentation-header"><strong>向' + speaker + '出示</strong><span>选择能直接击中当前矛盾的证物</span></header>' +
+          '<div class="presentation-grid">' + cards + '</div>' +
+          '<footer class="presentation-footer"><span>出示错误不会中断案件；对方会说明它为何不能支持推理。</span><button class="talk-close" data-action="close-presentation">返回交谈</button></footer>' +
+        '</section>' +
+      '</div>';
+    }
+
+    function renderInvestigationCursor() {
+      return game.mode === "investigate"
+        ? '<div class="investigation-cursor" aria-hidden="true"><span></span></div>'
+        : "";
+    }
+
+    function renderHotspots() {
+      if (game.mode !== "investigate") return "";
+      const objects = sceneState().objects || {};
+      return Object.keys(objects).map(function(key) {
+        const object = objects[key];
+        const inspected = sceneInspected(key) ? " inspected" : "";
+        const region = investigationRegions[game.scene + ":" + key] || [14, 18];
+        return '<button class="hotspot' + inspected + '" style="--x:' + object.x + '%;--y:' + object.y + '%;--hit-w:' + region[0] + '%;--hit-h:' + region[1] + '%" data-object="' + key + '" data-label="' + object.label + '" aria-label="调查' + object.label + '">' +
+          '<span class="hotspot-label">' + object.label + '</span>' +
+        '</button>';
+      }).join("");
+    }
+
+    function renderEvidenceCards(compact) {
+      if (!game.evidence.length) {
+        return compact ? '<div class="evidence-empty">用放大镜调查场景，证物会自动收进这里。</div>' : '<div class="empty-evidence">调查场景中的放大镜热点，证物会自动记录在这里。</div>';
+      }
+      return game.evidence.map(function(id, index) {
+        const item = evidenceCatalog[id] || [id, ""];
+        const icon = evidenceIcon(id);
+        if (compact) {
+          return '<div class="evidence-entry' + (index === game.evidence.length - 1 ? ' is-new' : '') + '">' + icon + '<div><strong>' + item[0] + '</strong><span>' + item[1] + '</span></div></div>';
+        }
+        return '<article class="evidence-card">' + icon + '<strong>' + item[0] + '</strong><p>' + item[1] + '</p></article>';
+      }).join("");
+    }
+
+    function evidenceIcon(id) {
+      const visual = evidenceVisuals[id];
+      if (visual) {
+        return '<div class="evidence-icon" role="img" aria-label="' + (evidenceCatalog[id]?.[0] || id) + '图片" style="background-image:url(' + visual[0] + ');background-position:' + visual[1] + ';background-size:' + visual[2] + '"></div>';
+      }
+      const index = evidenceAtlasIndex[id] ?? 19;
+      const col = index % 5;
+      const row = Math.floor(index / 5);
+      const x = (col * 25).toFixed(3);
+      const y = (row * 100 / 3).toFixed(3);
+      return '<div class="evidence-icon" role="img" aria-label="' + (evidenceCatalog[id]?.[0] || id) + '图片" style="background-image:url(' + assets.evidenceAtlas + ');background-position:' + x + '% ' + y + '%"></div>';
+    }
+
+    function renderAssociations() {
+      const canRepair = game.evidence.includes("brokenRadio") &&
+        game.evidence.includes("tapedKnife") &&
+        game.evidence.includes("metalPin") &&
+        !game.flags.repaired;
+      const canCompare = game.flags.repaired &&
+        game.evidence.includes("echoRecording") &&
+        !game.flags.melodyMatched;
+      const canMatchCostume = game.evidence.includes("starButton") &&
+        game.evidence.includes("cosplayCostume") &&
+        !game.flags.costumeMatched;
+      const canCompareHandwriting = game.evidence.includes("repairLabel") &&
+        game.evidence.includes("visitorLedger") &&
+        game.evidence.includes("recipeCard") &&
+        !game.flags.handwritingMatched;
+      if (!canRepair && !canCompare && !canMatchCostume && !canCompareHandwriting) {
+        return '<div class="association-zone"><h3>线索对照</h3><p>取得能够互相解释的证物后，这里会出现新的推理操作。</p></div>';
+      }
+      return '<div class="association-zone"><h3>发现可以尝试的关联</h3><p>关联不会凭空合成物品，而是执行明确的检查或对照操作。</p>' +
+        (canRepair ? '<button class="association-button" data-action="repair-radio">用小刀打开后盖，并以金属细针替代缺失连杆销</button>' : '') +
+        (canCompare ? '<button class="association-button" data-action="compare-melody">依次播放收音机与十七秒录音，对照旋律</button>' : '') +
+        (canMatchCostume ? '<button class="association-button" data-action="match-costume">把黑色星形纽扣放入Cosplay服装肩部缺口，比对线孔与磨损</button>' : '') +
+        (canCompareHandwriting ? '<button class="association-button" data-action="compare-handwriting">并排检查维修标签、入住登记与菜谱卡的笔迹</button>' : '') +
+      '</div>';
+    }
+
+    function renderEvidenceModal() {
+      if (!game.evidenceOpen) return "";
+      return '<div class="evidence-backdrop">' +
+        '<section class="evidence-book">' +
+          '<header class="book-header"><div><small>COURT RECORD</small><h2>证物记录</h2></div><button class="close-button" data-action="toggle-evidence" aria-label="关闭">×</button></header>' +
+          '<div class="evidence-grid">' + renderEvidenceCards(false) + '</div>' +
+          renderAssociations() +
+        '</section>' +
+      '</div>';
+    }
+
+    function renderEvidenceRail() {
+      const open = game.evidenceOpen;
+      return '<button class="evidence-tab' + (open ? '' : ' closed') + '" data-action="toggle-evidence" aria-expanded="' + open + '">' +
+        (open ? '收起' : '证物 ' + game.evidence.length) +
+      '</button>' +
+      '<aside class="evidence-rail' + (open ? ' open' : ' closed') + '" aria-label="证物栏">' +
+        '<header class="evidence-rail-header"><div><small>COURT RECORD</small><h2>证物栏 · ' + game.evidence.length + '</h2></div></header>' +
+        '<div class="evidence-rail-scroll">' + renderEvidenceCards(true) + renderAssociations() + '</div>' +
+      '</aside>';
+    }
+
+    function renderHook() {
+      if (game.mode !== "hook") return "";
+      const q = {
+        1: "想象一个周末的下午：接下来的三四个小时完全属于你，没有人安排你，也没有任何“应该”。你会先去哪里、做什么？如果愿意，再写下你为什么会想到它。",
+        2: "你曾经收藏过什么？它不需要值钱，也不需要有用。写下那件舍不得的东西，以及它现在可能在哪里。",
+        3: "想起一位“想象中的访客”——书里的角色、游戏里的伙伴，或你曾经想成为的英雄。你脑海中第一个出现的是谁？他来自哪里？",
+        4: "如果可以为一个人做一顿饭，或者带一个人去旅行，这个人会是谁？你会做什么菜，或者去哪里？"
+      }[game.hookNumber];
+      return '<div class="modal-backdrop">' +
+        '<section class="hook-card">' +
+          '<header class="hook-header"><div><small>RESONANCE LOCK</small><h2>共鸣锁 · 第' + game.hookNumber + '题</h2></div></header>' +
+          '<div class="hook-body">' +
+            '<p class="hook-question">' + q + '</p>' +
+            '<p class="hook-note">当前原型只记录在本页面内，不会上传。答案内容不被评分，只用于生成剧情中的记忆卡。</p>' +
+            '<textarea class="hook-input" data-hook-input placeholder="写下一段属于你的回答……">' + game.hookText + '</textarea>' +
+            '<button class="hook-submit" data-action="submit-hook"' + (game.hookText.trim() ? '' : ' disabled') + '>提交经历，生成钥匙</button>' +
+          '</div>' +
+        '</section>' +
+      '</div>';
+    }
+
+    function renderDeduction() {
+      if (game.mode !== "deduction") return "";
+      if (game.deductionStep === "proof") {
+        return '<div class="modal-backdrop"><section class="deduction-card">' +
+          '<small>FINAL DEDUCTION · 2 / 2</small>' +
+          '<h2>哪一组证物能唯一解释“失主是我”？</h2>' +
+          '<p>选择能同时解释四道共鸣锁、无名面具缺口和入口姓名封存的证物。</p>' +
+          '<div class="deduction-options">' +
+            '<button class="deduction-option" data-action="proveLabel"><strong>维修标签</strong><span>残留姓氏“林”，连接收音机与四角星。</span></button>' +
+            '<button class="deduction-option" data-action="proveMelody"><strong>相同旋律</strong><span>证明录音者、收音机和厨房计时器存在共同习惯。</span></button>' +
+            '<button class="deduction-option" data-action="proveMemories"><strong>四张记忆卡＋封存姓名</strong><span>四道锁只回应玩家的真实经历，且卡片恰好填入无名面具。</span></button>' +
+          '</div>' +
+        '</section></div>';
+      }
+      return '<div class="modal-backdrop"><section class="deduction-card">' +
+        '<small>FINAL DEDUCTION · 1 / 2</small>' +
+        '<h2>无名面具真正等待的人是谁？</h2>' +
+        '<p>不要选择“最可疑的人”，选择能让全部线索同时成立的人。</p>' +
+        '<div class="deduction-options">' +
+          '<button class="deduction-option" data-action="accuseAdministrator"><strong>管理员</strong><span>携带钥匙，并对收音机旋律产生了反应。</span></button>' +
+          '<button class="deduction-option" data-action="accuseFox"><strong>狐狸面具客</strong><span>认识Cosplay服装，也知道修理者长期站在镜头外。</span></button>' +
+          '<button class="deduction-option" data-action="accusePlayer"><strong>玩家自己</strong><span>亲手封存姓名，也是唯一让四道共鸣锁全部开启的人。</span></button>' +
+        '</div>' +
+      '</section></div>';
+    }
+
+    function renderChapterModal() {
+      if (game.mode !== "chapter") return "";
+      const data = {
+        1: ["第一章完成", "最后一个签名的人", "你接受了三年前留下的失主委托。拾一从黑色面具中醒来，四个记忆房间正式开放。", "进入第二章"],
+        2: ["第二章完成", "镜中的十七秒", "第一张记忆卡解锁了三年前的录音。未知人物提到一台旧收音机，背景里还有钥匙声。", "进入第三章"],
+        3: ["第三章完成", "不会唱完的收音机", "收音机旋律与回音录音一致，维修标签残留姓氏“林”。狐狸面具客又把线索指向了一套Cosplay服装。", "进入第四章"],
+        4: ["第四章完成", "不存在的访客", "黑色星形纽扣与Cosplay服装的缺口完全吻合。入住登记则记录着失主借虚构人物看清自己的方式。", "进入第五章"],
+        5: ["第五章完成", "没有人入镜的晚餐", "做菜照片、旅行票与三处一致笔迹补齐了四个房间。所有物品都指向一个总把自己留在镜头外的人。", "进入暗廊"],
+        6: ["第六章完成", "不愿被找回的人", "你排除了“最可疑”的管理员和狐狸客，并用四张记忆卡证明：共鸣锁一直在等待亲手封存姓名的玩家。", "回到礼堂"],
+        7: ["第七章完成", "四张卡拼成的面具", "烛、罐、门与餐桌填入无名面具的缺口。失主身份得到完整证明，现在只剩姓名归还与记忆交换。", "进入终幕"]
+      }[game.chapterData];
+      return '<div class="modal-backdrop"><section class="chapter-card">' +
+        '<span class="chapter-kicker">' + data[0] + '</span>' +
+        '<h2>' + data[1] + '</h2>' +
+        '<p>' + data[2] + '</p>' +
+        '<button data-action="next-chapter">' + data[3] + '</button>' +
+      '</section></div>';
+    }
+
+    function renderEnding() {
+      return '<section class="game-shell"><div class="end-panel"><div class="end-card">' +
+        '<span class="chapter-kicker">PROTOTYPE COMPLETE</span>' +
+        '<h1>第〇夜 · 完</h1>' +
+        '<p>你没有从单一物品上猜出一个名字，而是让请柬、镜框、收音机、Cosplay服装、入住登记、菜谱与四道共鸣锁彼此作证。最后被找回的不是一份简历，而是名字下面那些愿意承认的选择。</p>' +
+        '<div class="end-clues">' +
+          '<div class="end-clue"><strong>物证链</strong>四角星标记、相同旋律、吻合纽扣与一致笔迹连接了四个房间。</div>' +
+          '<div class="end-clue"><strong>身份链</strong>四道共鸣锁只回应玩家的真实回答，记忆卡又恰好填入无名面具。</div>' +
+          '<div class="end-clue"><strong>最后结论</strong>名字证明你来过；你愿意珍惜、想象与分享的事，才构成“我是谁”的初稿。</div>' +
+        '</div>' +
+        '<button class="start-button" data-action="restart">从请柬重新开始</button>' +
+      '</div></div></section>';
+    }
+
+    function renderTitle() {
+      return '<section class="game-shell title-screen">' +
+        '<div class="scene-bg" style="background-image:url(' + assets.invitation + ')"></div>' +
+        '<div class="title-panel">' +
+          '<span class="title-case">CASE 00 · INTERACTIVE PROTOTYPE</span>' +
+          '<h1>面具之下<small>失名之夜 · 完整流程雏形</small></h1>' +
+          '<p>调查四个房间，记录证物，通过纽扣、旋律与笔迹建立跨房线索；最后在暗廊完成身份推理，并亲手取回封存的名字。</p>' +
+          '<button class="start-button" data-action="start">打开请柬</button>' +
+          '<span class="title-meta">静态 HTML · 无数据库 · 完整八幕 · 约 18–25 分钟</span>' +
+        '</div>' +
+      '</section>';
+    }
+
+    function renderNotebookRails() {
+      return '<aside class="notebook-rail notebook-left">' +
+        '<header class="rail-header"><small>CASE PROGRESS</small><h2>失名之夜</h2></header>' +
+        '<div class="chapter-list">' + chapterSteps() + '</div>' +
+        '<div class="rail-objective"><strong>当前目标</strong><br>' + sceneState().objective + '</div>' +
+      '</aside>' +
+      '<aside class="notebook-rail notebook-right">' +
+        '<header class="rail-header"><small>COURT RECORD</small><h2>证物簿 · ' + game.evidence.length + '</h2></header>' +
+        '<div class="mini-evidence-list">' + renderEvidenceCards(true) + renderAssociations() + '</div>' +
+      '</aside>';
+    }
+
+    function renderGame() {
+      if (game.mode === "title") return renderTitle();
+      if (game.mode === "ending") return renderEnding();
+      const scene = sceneState();
+      const progress = evidenceCountForScene();
+      const complete = isSceneComplete();
+      return '<section class="game-shell' + (game.evidenceOpen ? '' : ' evidence-collapsed') + (game.mode === "investigate" ? ' investigating' : '') + (game.mode === "dialogue" ? ' dialoguing' : '') + emotionClass() + '">' +
+        '<div class="scene-bg" style="background-image:url(' + scene.asset + ')"></div>' +
+        '<header class="top-hud">' +
+          '<div class="case-mark"><span class="case-number">00</span><div class="case-copy"><strong>' + chapterTitle() + '</strong><span>面具之下 · 失名之夜</span></div></div>' +
+          '<div class="objective-chip"><strong>当前目标</strong><span>' + scene.objective + '</span></div>' +
+          '<div class="progress-chip"><span>' + progress[0] + ' / ' + progress[1] + '</span><span class="progress-dots">' +
+            Array.from({length: Math.max(progress[1], 1)}, function(_, i) { return '<i class="progress-dot ' + (i < progress[0] ? 'done' : '') + '"></i>'; }).join('') +
+          '</span></div>' +
+        '</header>' +
+        '<div class="scene-title"><span>' + scene.title + '</span></div>' +
+        renderStageSpeaker() +
+        renderHotspots() +
+        renderInvestigationCursor() +
+        renderTalkButton() +
+        renderProgressionTip() +
+        (complete && game.mode === "investigate" ? '<button class="next-scene-button" data-action="' + scene.nextAction + '">' + scene.nextLabel + '</button>' : '') +
+        renderShiyiEntrance() +
+        renderDialogue() +
+        renderEvidenceRail() +
+        renderTalkMenu() +
+        renderPresentationMenu() +
+        renderHook() +
+        renderDeduction() +
+        renderChapterModal() +
+      '</section>';
+    }
+
+    function render() {
+      if (typeof mount === "function") mount();
+    }
+    const stage = document.getElementById('stage');
+
+    function mount() {
+      stage.innerHTML = renderGame();
+    }
+
+    mount();
+
+    stage.addEventListener("click", function(event) {
+      const objectButton = event.target.closest("[data-object]");
+      if (objectButton) {
+        inspectObject(objectButton.dataset.object);
+        return;
+      }
+      const actionButton = event.target.closest("[data-action]");
+      if (!actionButton) return;
+      const action = actionButton.dataset.action;
+      if (action === "start") startGame();
+      else if (action === "advance") advanceDialogue();
+      else if (action === "open-talk") openTalk();
+      else if (action === "close-talk") closeTalk();
+      else if (action === "select-talk-speaker") openTalk(actionButton.dataset.speaker);
+      else if (action === "talk-topic") discussTopic(actionButton.dataset.topic);
+      else if (action === "open-presentation") openPresentation();
+      else if (action === "close-presentation") openTalk(game.talkSpeaker);
+      else if (action === "present-evidence") presentEvidence(actionButton.dataset.evidence);
+      else if (action === "toggle-evidence") {
+        game.evidenceOpen = !game.evidenceOpen;
+        render();
+      }
+      else if (action === "submit-hook") submitHook();
+      else if (action === "repair-radio") repairRadio();
+      else if (action === "compare-melody") compareMelody();
+      else if (action === "match-costume") matchCostume();
+      else if (action === "compare-handwriting") compareHandwriting();
+      else if (action === "next-chapter") runAction("nextChapter");
+      else if (action === "restart") runAction("restart");
+      else runAction(action);
+    });
+
+    stage.addEventListener("input", function(event) {
+      if (!event.target.matches("[data-hook-input]")) return;
+      game.hookText = event.target.value;
+      const button = stage.querySelector('[data-action="submit-hook"]');
+      if (button) button.disabled = !game.hookText.trim();
+    });
+
+    stage.addEventListener("pointermove", function(event) {
+      const cursor = stage.querySelector(".investigation-cursor");
+      if (!cursor) return;
+      const rect = stage.getBoundingClientRect();
+      cursor.style.left = (event.clientX - rect.left) + "px";
+      cursor.style.top = (event.clientY - rect.top) + "px";
+      const validTarget = event.target.closest("[data-object]");
+      const overUi = event.target.closest(".evidence-tab, .evidence-rail, .next-scene-button, .talk-button, .investigate-tip");
+      const cursorLabel = cursor.querySelector("span");
+      if (cursorLabel) cursorLabel.textContent = validTarget ? validTarget.dataset.label : "";
+      cursor.classList.toggle("valid", Boolean(validTarget));
+      cursor.classList.toggle("ui-hidden", Boolean(overUi));
+    });
+
+    stage.addEventListener("pointerleave", function() {
+      const cursor = stage.querySelector(".investigation-cursor");
+      if (cursor) cursor.classList.add("ui-hidden");
+    });
+  </script>
+</body>
+</html>
