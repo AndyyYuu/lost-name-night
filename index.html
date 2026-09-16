@@ -2900,6 +2900,155 @@
     .alias-submit:disabled { opacity: .38; cursor: not-allowed; }
     .alias-cancel { border: 1px solid rgba(255,255,255,.28); background: transparent; color: white; }
 
+    .story-choice-backdrop {
+      z-index: 80;
+      background:
+        radial-gradient(circle at 50% 42%, rgba(24,93,120,.22), transparent 38%),
+        rgba(1,7,14,.82);
+      backdrop-filter: blur(7px);
+    }
+
+    .story-choice-card {
+      width: min(720px, 92vw);
+      max-height: 88vh;
+      overflow: auto;
+      padding: 30px;
+      border: 2px solid rgba(93,200,239,.78);
+      border-radius: 8px;
+      background: linear-gradient(145deg, rgba(9,27,47,.98), rgba(4,14,27,.98));
+      color: #eef9ff;
+      text-align: center;
+      box-shadow: 0 28px 80px rgba(0,0,0,.68), inset 0 0 0 4px rgba(255,255,255,.025);
+      animation: story-card-in 240ms cubic-bezier(.2,.8,.2,1) both;
+    }
+
+    @keyframes story-card-in {
+      from { opacity: 0; transform: translateY(14px) scale(.975); }
+      to { opacity: 1; transform: none; }
+    }
+
+    .story-choice-card small {
+      display: block;
+      margin: 4px 0 8px;
+      color: #72ceee;
+      font-weight: 800;
+      letter-spacing: .18em;
+    }
+
+    .story-choice-card h2 { margin: 0; font: 700 clamp(28px,4vw,42px)/1.2 Georgia,"STSong",serif; }
+    .story-choice-card > p { max-width: 590px; margin: 16px auto 24px; color: rgba(238,249,255,.72); line-height: 1.75; }
+
+    .story-object {
+      position: relative;
+      width: 176px;
+      margin: 0 auto 18px;
+    }
+
+    .story-object-icon,
+    .unlock-key-icon {
+      width: 100%;
+      aspect-ratio: 1;
+      border: 6px solid #9ba6a7;
+      background-color: #d4d6d2;
+      background-repeat: no-repeat;
+      background-size: 500% 400%;
+      box-shadow: 0 13px 34px rgba(0,0,0,.4), inset 0 0 0 2px #f5f1e9;
+    }
+
+    .wax-seal {
+      position: absolute;
+      right: 19px;
+      bottom: 20px;
+      display: grid;
+      width: 44px;
+      height: 44px;
+      place-items: center;
+      border: 3px solid #7a111c;
+      border-radius: 50%;
+      background: #b42230;
+      color: #ffd2a7;
+      font-size: 22px;
+      box-shadow: 0 4px 10px rgba(0,0,0,.42);
+      animation: seal-pulse 1.7s ease-in-out infinite;
+    }
+
+    @keyframes seal-pulse { 50% { transform: scale(1.06); filter: brightness(1.16); } }
+
+    .story-primary-button,
+    .story-secondary-button {
+      min-height: 48px;
+      padding: 10px 20px;
+      border-radius: 5px;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .story-primary-button { border: 1px solid #ffd24d; background: #ffd24d; color: #17202a; font-weight: 850; }
+    .story-secondary-button { border: 1px solid rgba(255,255,255,.3); background: rgba(255,255,255,.045); color: #eef9ff; }
+    .story-primary-button:hover,
+    .story-primary-button:focus-visible,
+    .story-secondary-button:hover,
+    .story-secondary-button:focus-visible { transform: translateY(-1px); filter: brightness(1.1); outline: 3px solid rgba(111,207,242,.32); outline-offset: 3px; }
+
+    .story-choice-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .story-choice-actions button { display: grid; gap: 4px; text-align: left; }
+    .story-choice-actions strong { font-size: 18px; }
+    .story-choice-actions span { font-size: 11px; font-weight: 500; opacity: .7; }
+
+    .lock-interaction {
+      position: relative;
+      width: 260px;
+      height: 150px;
+      margin: 0 auto 16px;
+    }
+
+    .jar-lock {
+      position: absolute;
+      left: 34px;
+      top: 18px;
+      width: 92px;
+      height: 110px;
+      border: 7px double #b88735;
+      border-radius: 18px 18px 30px 30px;
+      background: linear-gradient(160deg, #526471, #172632 65%);
+      box-shadow: inset 0 0 18px rgba(0,0,0,.7), 0 10px 28px rgba(0,0,0,.42);
+    }
+
+    .jar-lock::before {
+      content: "";
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      top: -18px;
+      height: 19px;
+      border: 5px solid #b88735;
+      border-radius: 5px 5px 0 0;
+      background: #233542;
+    }
+
+    .jar-lock span {
+      position: absolute;
+      left: 50%;
+      top: 48%;
+      width: 18px;
+      height: 33px;
+      border-radius: 9px 9px 3px 3px;
+      background: #09131c;
+      transform: translate(-50%,-50%);
+      box-shadow: 0 0 0 3px rgba(232,190,100,.55);
+    }
+
+    .unlock-key-icon {
+      position: absolute;
+      right: 12px;
+      top: 14px;
+      width: 118px;
+      transform: rotate(-12deg);
+      animation: key-ready 1.2s ease-in-out infinite alternate;
+    }
+
+    @keyframes key-ready { to { transform: translateX(-10px) rotate(-4deg); } }
+
     .title-actions { display: flex; flex-wrap: wrap; gap: 9px; }
     .continue-button { border-color: rgba(110,213,244,.72); background: rgba(20,78,108,.86); }
 
@@ -2939,6 +3088,9 @@
       .acquired-dialogue button::before { font-size: 48px; }
       .acquired-dialogue button { font-size: 12px; }
       .chapter-map-list { grid-template-columns: 1fr; padding: 12px; }
+      .story-choice-card { padding: 22px 16px; }
+      .story-choice-actions { grid-template-columns: 1fr; }
+      .story-object { width: 132px; }
       .chapter-map-item { min-height: 52px; }
       .dialogue-exit-button { right: 76px; top: 9px; padding: 0 8px; }
       .scene-title { display: none; }
@@ -2955,7 +3107,7 @@
       ballroom: "assets/12_scene_ballroom_letter.png",
       echo: "assets/13_scene_echo_gallery_evidence_v2.png",
       collection: "assets/14_scene_collection_room_evidence_v2.png",
-      collectionOpen: "assets/14_scene_collection_room_open_evidence_v2.png",
+      collectionOpen: "assets/14_scene_collection_room_open_evidence_v3.png",
       anyHouse: "assets/15_scene_seaside_any_house_evidence_v2.png",
       kitchen: "assets/16_scene_late_night_kitchen_evidence_v2.png",
       kitchenOpen: "assets/16_scene_late_night_kitchen_open_evidence_v2.png",
@@ -2968,6 +3120,9 @@
       administrator: "assets/24_administrator_actions_transparent.png",
       host: "assets/25_host_actions_transparent.png",
       shadow: "assets/26_shadow_actions.png",
+      namelessMask: "assets/27_evidence_nameless_mask_v2.png",
+      sealedName: "assets/28_evidence_sealed_name_v2.png",
+      invitationEvidence: "assets/29_evidence_invitation_v2.png",
       shiyi: "assets/20_shiyi_actions_transparent.png",
       evidenceAtlas: "assets/21_evidence_atlas.png"
     };
@@ -2984,10 +3139,11 @@
       invitation: ["无名请柬", "没有署名。红色火漆上压着一个四角星。"],
       blackMask: ["无名面具", "内侧没有姓名，只留下曾经放过卡片的浅色方形痕迹。"],
       sealedName: ["封存的姓名与代号", "名牌正面写着今晚使用的代号；真实姓名写在背面并由玩家亲手封入信封。"],
-      ownerLetter: ["失主委托信", "要求最后一位登记的客人在日出前，通过四个房间找回失主身份。"],
+      ownerLetter: ["失主委托信", "三年前封入无名面具的委托。只有配套请柬与封名信封同时回到礼堂，暗层才会开启。"],
       starBadge: ["四角星徽章", "与请柬火漆上的图案完全相同。"],
-      mirrorMark: ["镜子上的四角星", "刻在黄铜修补处，手法与请柬火漆图案一致。"],
-      candle: ["回音阁蜡烛", "可以移动。烛泪证明它曾被人拿着走动。"],
+      mirrorMark: ["镜框起点标记", "中央镜框的黄铜修补处刻着四角星和起始箭头；其余八面镜框也有细小方向刻线。"],
+      candle: ["回音阁蜡烛", "烛台有只能透出窄光的旋转遮光罩；黄铜底座下画着一至九号镜位图。"],
+      mirrorLightPath: ["九面镜光路", "蜡烛放到四角星起点后，光依次经过九面镜子，最终解开录音机卡匣上的光敏锁。"],
       echoRecording: ["十七秒录音", "三年前的录音。末尾包含哼唱声与钥匙碰撞声。"],
       freedomCard: ["自由记忆卡", "第一道Hook生成的记忆卡。"],
       echoKey: ["回音钥匙", "由真实经历凝成，可开启收藏室。"],
@@ -2998,11 +3154,11 @@
       repairedRadio: ["修复的收音机", "装入金属细针后恢复工作，能够播放一段熟悉旋律。"],
       sameMelody: ["相同的旋律", "收音机旋律与回音阁录音中的哼唱完全一致。"],
       collectionCard: ["珍藏记忆卡", "第二道Hook生成的记忆卡。"],
-      collectionKey: ["收藏钥匙", "打开了收藏柜底部的隐蔽抽屉。"],
+      collectionKey: ["收藏钥匙", "玻璃罐形状的钥匙，与收藏柜底部抽屉的锁孔完全吻合。"],
       repairLabel: ["收音机维修标签", "维修人栏只残留一个“林”字，旁边画着四角星；它不能单独证明失主姓林。"],
       visitorLedger: ["任意屋入住登记", "同一笔迹留下许多不存在的访客，末页画着一扇门。"],
       cosplayCostume: ["旧Cosplay服装", "肩部缺少一枚四角星纽扣，针脚间距仍清晰可见。"],
-      backstagePhoto: ["褪色的后台合照", "所有人都在镜头里，唯独道具修理者只留下伸进画面的手。"],
+      backstagePhoto: ["褪色的后台合照", "演员们站在镜头里；道具修理者没有露脸，只留下伸进画面缝纽扣的手。"],
       harborKeyTag: ["港口钥匙牌", "背面写着“给每一个想成为别人的人留一间房”。"],
       costumeMatch: ["纽扣与服装吻合", "黑色星形纽扣的线孔、旧线和服装肩部缺口完全吻合。"],
       imaginaryCard: ["访客记忆卡", "第三道共鸣锁生成的门形卡片，记录一位想象中的同行者。"],
@@ -3042,7 +3198,11 @@
     };
 
     const evidenceVisuals = {
+      invitation: [assets.invitationEvidence, "center", "100%"],
+      blackMask: [assets.namelessMask, "center", "128%"],
+      sealedName: [assets.sealedName, "center", "94%"],
       repairLabel: [assets.collectionOpen, "52% 84%", "285%"],
+      mirrorLightPath: [assets.echo, "31% 46%", "250%"],
       visitorLedger: [assets.anyHouse, "43% 49%", "285%"],
       cosplayCostume: [assets.anyHouse, "88% 28%", "235%"],
       backstagePhoto: [assets.anyHouse, "44% 22%", "330%"],
@@ -3101,11 +3261,11 @@
         asset: assets.invitation,
         objective: "打开请柬，前往假面舞会",
         intro: [
-          ["旁白", "晚上十一点，一张深黑色请柬从宿舍门缝下滑了进来。"],
-          ["旁白", "烫金文字写着：今晚，礼堂只属于戴面具的人。请带来一样你不再需要伪装的东西。"],
-          ["旁白", "请柬背后没有寄件人，只有四个字——失主委托。"]
+          ["旁白", "晚上十一点，一声轻响擦过门底。"],
+          ["旁白", "一只没有收件人姓名的黑色信封从宿舍门缝滑了进来。红色火漆上，压着一枚四角星。"],
+          ["玩家", "信封是封着的。要看里面写了什么，只能亲手拆开。"]
         ],
-        afterIntro: "goEntrance",
+        afterIntro: "awaitInvitationOpen",
         objects: {}
       },
       entrance: {
@@ -3114,7 +3274,8 @@
         asset: assets.entrance,
         objective: "调查入口长桌，完成姓名封存",
         intro: [
-          ["门卫", "你是今晚最后一位完成登记的客人。请在名牌正面写下今晚想使用的代号，再把真实姓名写在背面。"],
+          ["门卫", "晚上好。登记就要结束了——你是今晚最后一位到场的客人。"],
+          ["门卫", "请在名牌正面写下今晚使用的代号，再把真实姓名写在背面。"],
           ["玩家", "为什么要把真实姓名封起来？大家又怎么区分彼此？"],
           ["门卫", "名牌和腕带会显示代号；真实姓名由你亲手封入信封。舞会结束时，它会被原样归还。"],
           ["门卫", "桌上的黑色面具不属于普通客人。请不要随意触碰。"]
@@ -3140,7 +3301,8 @@
             lines: [
               ["拾一", "（面具内部传来很轻的敲击声，但此时还没有人注意到。）"],
               ["玩家", "内侧没有名字，只有一块比周围颜色更浅的方形痕迹。"],
-              ["门卫", "像是曾经贴过一张名牌，但被人取走了。"]
+              ["门卫", "像是曾经贴过一张名牌，但被人取走了。它刚才对你的请柬有反应。"],
+              ["门卫", "请把它带进礼堂交给主持人。别戴上，只管拿好。"]
             ]
           },
           pen: {
@@ -3167,12 +3329,13 @@
         asset: assets.ballroom,
         objective: "调查突然出现的信件与无名面具",
         intro: [
+          ["旁白", "你依照门卫的嘱咐，把无名面具放在礼堂长桌上。"],
           ["旁白", "舞曲停止。礼堂陷入黑暗。"],
-          ["旁白", "灯光重新亮起时，长桌上多了一封三年前写下的信。"],
-          ["主持人", "今晚在场的人中，有一个人已经忘记了自己的名字。"],
-          ["主持人", "按照失主留下的委托，这封信必须交给今晚最后一个完成姓名登记的人。"],
-          ["玩家", "所以调查者是我？"],
-          ["狐狸面具客", "真幸运。或者说，真倒霉。"]
+          ["旁白", "灯光重新亮起时，面具内侧的暗层已经弹开。一封泛黄的信躺在其中，封口日期停在三年前。"],
+          ["主持人", "这封信不是寄出去的信。三年前，失主把它留在面具里，等配套的请柬回到礼堂后由人领回。"],
+          ["玩家", "所以你们选择我，不是因为我最后登记？"],
+          ["主持人", "不是。最后到场只是因为你在门外犹豫了很久。真正启动委托的，是你的请柬和刚刚封好的姓名信封。"],
+          ["狐狸面具客", "信已经认出了领回它的人。至于你认不认得自己，那是接下来的事。"]
         ],
         afterIntro: "investigate",
         required: ["letter", "mask", "fox"],
@@ -3222,9 +3385,10 @@
         chapter: 2,
         title: "第二章 · 镜中的十七秒",
         asset: assets.echo,
-        objective: "调查九面落地镜、蜡烛与录音机",
+        objective: "找出录音机无法播放的原因，恢复三年前的录音",
         intro: [
-          ["管理员", "回音阁里有九面带黄铜边框的落地镜。所有可以调查的东西都已经留在原位。"],
+          ["管理员", "回音阁里有九面带黄铜边框的落地镜。三年前那场舞会以后，它们的角度就没有再动过。"],
+          ["管理员", "桌上的录音机也保持原样。它的播放键按不下去，房间里没有留下使用说明。"],
           ["玩家", "你以前进入过这个房间吗？"],
           ["管理员", "我是今晚才接手这里的管理员。至少，我只记得今晚。"],
           ["拾一", "这句话听起来很诚实，也很可疑。"]
@@ -3240,8 +3404,8 @@
             evidence: "mirrorMark",
             lines: [
               ["玩家", "镜面没有异常，但右下角的黄铜包边曾经被人修补。"],
-              ["拾一", "修补处刻着四角星。和请柬上的图案一样。"],
-              ["玩家", "制作请柬的人，也可能修过这面镜子。"]
+              ["拾一", "四角星旁边刻着一个起始箭头。其余八面镜框上，也各有一道方向不同的细线。"],
+              ["玩家", "这些痕迹不是装饰，像是在标示一条从第一面到第九面的路线。普通灯光太散，看不出路线通向哪里。"]
             ]
           },
           candle: {
@@ -3250,7 +3414,8 @@
             evidence: "candle",
             lines: [
               ["拾一", "烛泪只凝固在一侧。它曾被人拿着移动，不是一直放在这里。"],
-              ["玩家", "先收进证物袋。之后或许能用来照出某些痕迹。"]
+              ["玩家", "烛台外圈还有一层能旋转的遮光罩，只留了一道窄缝。底座下面画着一到九号镜位图。"],
+              ["拾一", "这不是普通照明。中央镜框给出起点，底座给出九面镜子的顺序；把两件证物放在一起，应该能重建一条定向光路。"]
             ]
           },
           recorder: {
@@ -3258,9 +3423,10 @@
             x: 65, y: 69,
             after: "hook1",
             lines: [
-              ["旁白", "录音机播放出一段三年前录制的声音。"],
+              ["旁白", "光敏锁解除后，卡住的播放键弹了起来。你按下按键，磁带开始转动。"],
+              ["旁白", "录音机先播放出一段三年前留下的引导语。"],
               ["未知声音", "如果你找到了这里，请先回答一个问题。不要给正确答案，只说属于你的答案。"],
-              ["拾一", "录音剩余部分被共鸣锁封住了。要继续播放，我们需要生成第一把钥匙。"]
+              ["拾一", "九面镜只解开了录音机的物理锁。后面的十七秒仍被共鸣锁封着；回答问题，才能让它继续播放。"]
             ]
           },
           door: {
@@ -3342,10 +3508,11 @@
         asset: assets.anyHouse,
         objective: "调查任意屋，确认服装、照片与入住登记的关系",
         intro: [
-          ["旁白", "门形钥匙转动以后，潮声从门缝里涌了进来。门后不是礼堂，而是一间停泊在月色里的海边旅店。"],
-          ["管理员", "这里叫任意屋。它接待过所有的船，也接待过不存在的人。"],
-          ["狐狸面具客", "那套Cosplay服装就在右边。三年前，它曾出现在我们的后台。"],
-          ["拾一", "先别急着认人。照片里站在镜头前的人，未必是留下这些东西的人。"]
+          ["旁白", "门形钥匙转动以后，潮声从门缝里涌来。门后的房间被布置成一间月色下的海边旅店。"],
+          ["玩家", "这里明明还在礼堂里，窗外为什么会有港口？"],
+          ["管理员", "四个房间都是失主按记忆搭建的沉浸场景。窗外是投影，潮声来自墙后的留声装置；我们没有离开礼堂。"],
+          ["管理员", "这里叫任意屋。登记簿既给现实中的访客留房，也给虚拟世界里陪伴过我们的角色留位置。"],
+          ["狐狸面具客", "那套Cosplay服装就在右边。三年前，它曾出现在我们的后台。先从实物查起。"]
         ],
         afterIntro: "investigate",
         required: ["ledger", "costume", "photo", "keyRack"],
@@ -3380,7 +3547,8 @@
             lines: [
               ["旁白", "合照里，狐狸面具客穿着那套服装，身后挤满了演员。"],
               ["玩家", "画面右下角有一只手正在替服装缝纽扣，但那个人站在镜头外。"],
-              ["狐狸面具客", "修道具的人总替别人拍照，从不肯留下自己的脸。"]
+              ["狐狸面具客", "修道具的人总替别人拍照，从不肯留下自己的脸。"],
+              ["拾一", "现在可以提醒了：合照能证明谁穿过衣服，却不能用画面里站着的人，代替那个只留下手的修理者。"]
             ]
           },
           keyRack: {
@@ -3397,8 +3565,8 @@
             label: "月光下的港口",
             x: 68, y: 43,
             lines: [
-              ["玩家", "外面的船没有一艘靠岸，房间却一直为旅人亮着灯。"],
-              ["拾一", "也许任意屋从来不是让人逃走的地方，而是让人带着喜欢的角色回来。"]
+              ["玩家", "投影里的船没有一艘靠岸，房间却一直为访客亮着灯。"],
+              ["拾一", "这不是让人逃离现实的港口，而是给现实中的人和虚构的伙伴留一张共同的登记表。"]
             ]
           }
         }
@@ -3546,7 +3714,7 @@
             label: "关于姓名封存",
             lines: [
               ["玩家", "为什么一定要把名字封进信封？"],
-              ["门卫", "因为人被叫到名字时，会下意识扮演别人认识的那个自己。今晚要先让这种反应安静下来。"],
+              ["门卫", "因为人被叫到名字时，会下意识扮演别人认识的那个自己。今晚我们只做我们想做的自己。"],
               ["门卫", "封存不是抹去。信封一直在你看得见的地方，最后也必须由你亲手取回。"]
             ]
           },
@@ -3571,14 +3739,14 @@
           },
           {
             id: "lastGuest",
-            label: "最后一位客人",
+            label: "为什么我是最后一位",
             requiresTopics: ["threeYears"],
             requiresFlags: ["gatekeeperMaskPresented"],
             setFlags: ["entranceTalkCleared"],
             lines: [
-              ["玩家", "委托为什么要交给今晚最后一个登记的人？"],
-              ["门卫", "三年前留下委托的人也是最后一个完成登记的客人。他说：最后到达的人，最明白站在门外犹豫是什么感觉。"],
-              ["门卫", "我当时以为那只是一句玩笑。现在看来，他是在给未来的自己留下入口。"]
+              ["玩家", "我为什么会成了最后一个登记的人？"],
+              ["门卫", "邀请在十一点送达，你却在门外停了很久。等你决定进来、换好礼服赶到这里，其他客人已经登记完了。"],
+              ["门卫", "但最后到场只说明你犹豫过。委托会不会启动，要看请柬和无名面具是否相认。"]
             ]
           }
         ]
@@ -3590,8 +3758,8 @@
             label: "关于失主委托",
             lines: [
               ["玩家", "你早就知道这封委托会在午夜出现？"],
-              ["主持人", "我只知道启动条件：最后一位客人封存姓名、无名面具被带进礼堂、舞曲在午夜停止。"],
-              ["主持人", "条件由三年前的人写下，我没有权力替他删改。"]
+              ["主持人", "我只知道启动条件：与面具配套的请柬回到礼堂、持有人亲手封存姓名、舞曲在午夜停止。"],
+              ["主持人", "三年前，失主把信封进面具，约定等这些条件同时成立时再由本人领回。今晚暗层第一次打开。"]
             ]
           },
           {
@@ -3600,8 +3768,8 @@
             requiresTopics: ["incident"],
             lines: [
               ["玩家", "你可以自己调查，为什么非要把信交给我？"],
-              ["主持人", "因为知道答案的人只能告知姓名，不能替失主认出自己。委托需要一位对旧关系没有预设的人。"],
-              ["主持人", "你是局外人，也是唯一刚刚主动把名字交出去的人。"]
+              ["主持人", "不是我选了你，是面具里的机关认出了与你配套的请柬和封名信封。"],
+              ["主持人", "我们可以告诉你旧物属于谁，却不能替你证明这些经历为什么会回应你。委托要求领回者亲手走完四个房间。"]
             ]
           },
           {
@@ -3622,8 +3790,8 @@
             label: "关于失主",
             lines: [
               ["玩家", "你说失主今晚就在场，依据是什么？"],
-              ["狐狸面具客", "因为这封信三年前没有寄出，却准确写着今晚的流程。能让它生效的人只能已经入场。"],
-              ["狐狸面具客", "但别把“在场”误解成“正在看着你”。有些人最擅长忽略自己。"]
+              ["狐狸面具客", "三年前，失主把请柬、封名记录和面具做成一套回收机关。三样东西必须同时回到礼堂，委托信才会从暗层出现。"],
+              ["狐狸面具客", "今晚机关已经开启，说明持有配套请柬的人完成了登记。失主不是在远处等消息，而是已经进了这座礼堂。"]
             ]
           },
           {
@@ -3665,11 +3833,12 @@
             id: "nineMirrors",
             label: "九面镜子的排列",
             requiresTopics: ["echoRules"],
-            requiresFlags: ["mirrorMarkPresented"],
+            requiresFlags: ["mirrorMarkPresented", "mirrorLightRevealed"],
             lines: [
-              ["玩家", "九面镜子为什么只有中央一面修补过？"],
-              ["管理员", "八面用来看完整轮廓，中央一面专门照手。布置者说，人说谎时脸可以不动，手却会先抓紧东西。"],
-              ["拾一", "难怪四角星刻在右下角——那正是手自然垂下时最容易看到的位置。"]
+              ["玩家", "为什么要绕九面镜子？把蜡烛直接放到录音机前不行吗？"],
+              ["管理员", "不行。光敏片只接受从第九面镜子反射来的窄光束。换一个方向照，它不会解除锁片。"],
+              ["管理员", "这套装置不是为了为难调查者，而是为了防止别人误播。只有发现四角星起点、读懂蜡烛底座顺序的人，才知道那段录音是特意留下的。"],
+              ["拾一", "它暂时不能证明失主是谁，但能证明一件事：修过镜框、调过九面镜子、锁上录音机的是同一个布置者。四角星是那个人留下的操作标记。"]
             ]
           },
           {
@@ -4006,9 +4175,9 @@
             setFlags: ["mirrorMarkPresented"],
             lines: [
               ["玩家", "中央镜框修补处刻着四角星。你说所有物品都保持原位，这也包括修补记录吗？"],
-              ["管理员", "包括。记录显示修补者特意改变了九面镜子的角度，却没有留下姓名。"],
-              ["管理员", "我可以告诉你那些角度用于观察什么。"],
-              ["旁白", "关于九面镜子的新话题出现了。"]
+              ["管理员", "包括。维修记录写着：三年前录音机被放进房间的同一天，九面镜子全部重新校准。用途一栏是空白。"],
+              ["玩家", "同一天发生，就值得验证。烛台底座又刚好画着一到九号镜位图。"],
+              ["旁白", "可在证物栏中关联蜡烛与镜框起点，重建九面镜子的光路。"]
             ]
           },
           echoRecording: {
@@ -4446,7 +4615,6 @@
         deductionStep: "owner", talked: {}, talkSpeaker: null, presented: {}, chapterData: null,
         chapterMapOpen: false, systemMessage: ""
       });
-      addEvidence("invitation");
       setScene("invitation");
     }
 
@@ -4474,6 +4642,19 @@
       const scene = sceneState();
       const object = scene.objects[key];
       if (!object) return;
+      if (game.scene === "echo" && key === "recorder" && !game.flags.mirrorLightRevealed) {
+        if (game.flags.recorderSeenLocked) {
+          showSystemMessage("播放键仍被锁住；镜框刻线和定向烛台可能是开启方法");
+          return;
+        }
+        game.flags.recorderSeenLocked = true;
+        triggerDialogue([
+          ["玩家", "播放键按不下去。不是锈住了，里面像有一块锁片故意挡着。"],
+          ["拾一", "卡匣窗口下面有一小块暗红色玻璃，像老式光敏开关。普通灯光照不到这个角度。"],
+          ["玩家", "所以不能直接播放。房间里应该藏着一条能把光送到这里的路线。"]
+        ], "investigate");
+        return;
+      }
       if (sceneInspected(key)) {
         showSystemMessage("这里已经调查过了，没有新增线索");
         return;
@@ -4525,22 +4706,21 @@
       game.hookAnswers[n] = game.hookText.trim();
       game.flags["hook" + n] = true;
       if (n === 1) {
-        addEvidence(["freedomCard", "echoRecording", "echoKey"]);
+        addEvidence(["freedomCard", "echoKey", "echoRecording"]);
         triggerDialogue([
           ["拾一", "答案没有被评判。它只是被记住了。"],
-          ["旁白", "你的回答凝成一张记忆卡，又折叠成一把蜡烛形钥匙。"],
+          ["旁白", "你的回答凝成一张自由记忆卡。与此同时，卡片边缘溢出的光另行凝成一把蜡烛形钥匙。"],
+          ["玩家", "卡片和钥匙都在。是两样东西。"],
           ["未知声音", "以前属于我的下午，常常用来修理会发出声音的东西。尤其是一台旧收音机。"],
           ["旁白", "录音末尾有十七秒空白。空白中传来轻微哼唱，以及钥匙互相碰撞的声音。"],
           ["玩家", "录音创建于三年前。哼唱者和收藏室里的收音机，可能属于同一个人。"]
         ], "investigate");
       } else if (n === 2) {
-        addEvidence(["collectionCard", "collectionKey", "repairLabel"]);
+        addEvidence(["collectionCard", "collectionKey"]);
         triggerDialogue([
-          ["拾一", "你舍不得的东西成为第二张记忆卡。玻璃罐形状的钥匙落进锁孔。"],
-          ["旁白", "隐藏抽屉打开，里面是一张从收音机底部脱落的维修标签。"],
-          ["玩家", "维修人栏只剩一个“林”字，旁边同样画着四角星；但这还不能证明失主姓林。"],
-          ["拾一", "制作请柬、修补镜子和维修收音机的人，留下了相同的个人标记。"]
-        ], "investigate");
+          ["拾一", "你舍不得的东西成为第二张记忆卡。卡片旁边，出现了一把玻璃罐形状的钥匙。"],
+          ["玩家", "钥匙有了，但抽屉不会自己打开。得把它插进玻璃罐形锁孔，再亲手转动。"]
+        ], "collectionUnlock");
       } else if (n === 3) {
         addEvidence(["imaginaryCard", "doorKey"]);
         triggerDialogue([
@@ -4573,6 +4753,33 @@
         ["管理员", "……"],
         ["拾一", "管理员刚才是不是在旋律停止以后，哼出了最后一个音？"],
         ["玩家", "先别下结论。我们需要把它与回音阁录音进行直接对照。"]
+      ], "investigate");
+    }
+
+    function revealMirrorLight() {
+      if (game.flags.mirrorLightRevealed) return;
+      game.flags.mirrorLightRevealed = true;
+      game.evidenceOpen = false;
+      addEvidence("mirrorLightPath");
+      triggerDialogue([
+        ["旁白", "你按照底座下的镜位图，把烛台放到中央镜框的四角星前，再转动遮光罩，让窄缝对准一号镜。"],
+        ["拾一", "一号镜把窄光送到二号镜。二号镜框的刻线又指向三号镜……顺序和底座上的镜位图完全一致。"],
+        ["旁白", "光经过九次反射，最后聚成一个很小的亮点，落在录音机卡匣下方的暗红色玻璃上。"],
+        ["旁白", "录音机内部传来一声轻响。磁带计数器从“000”跳成“017”，挡住播放键的锁片缩了回去。"],
+        ["玩家", "明白了。九面镜不是用来照人，而是一把不能被随手拿走的光路钥匙。现在可以播放录音了。"]
+      ], "investigate");
+    }
+
+    function openCollectionDrawer() {
+      if (game.flags.collectionDrawerOpened) return;
+      game.flags.collectionDrawerOpened = true;
+      playSfx("unlock");
+      addEvidence("repairLabel");
+      triggerDialogue([
+        ["旁白", "你把玻璃罐形钥匙插入锁孔。钥匙转过半圈，罐口形的锁片一层层缩回。"],
+        ["旁白", "咔哒。隐藏抽屉向外弹开，里面是一张从收音机底部脱落的维修标签。"],
+        ["玩家", "维修人栏只剩一个“林”字，旁边同样画着四角星；但这还不能证明失主姓林。"],
+        ["拾一", "制作请柬、修补镜子和维修收音机的人，留下了相同的个人标记。"]
       ], "investigate");
     }
 
@@ -4634,6 +4841,36 @@
         openTalk(game.talkSpeaker);
       } else if (action === "returnToPresent") {
         openPresentation();
+      } else if (action === "awaitInvitationOpen") {
+        game.mode = "invitationOpen";
+        render();
+      } else if (action === "openInvitation") {
+        addEvidence("invitation");
+        triggerDialogue([
+          ["旁白", "你用拇指压住四角星火漆。细小的裂纹从中央散开，信封终于被打开。"],
+          ["旁白", "烫金文字写着：今夜，礼堂里没有姓名、没有身份，只有面具之下的你。"],
+          ["旁白", "请柬背面没有寄件人，只有四个字：失主委托。"],
+          ["玩家", "十一点半以前抵达旧礼堂……现在出发还来得及。可我真的要参加吗？"]
+        ], "attendanceChoice");
+      } else if (action === "attendanceChoice") {
+        game.mode = "attendanceChoice";
+        render();
+      } else if (action === "acceptInvitation") {
+        game.flags.invitationAccepted = true;
+        triggerDialogue([
+          ["旁白", "参加，意味着把真实姓名暂时交出去，也意味着可能看到一段本不该记得的过去。"],
+          ["玩家", "但如果不去，我大概会整晚想着门后究竟有什么。"],
+          ["旁白", "你换好礼服，把请柬放进口袋，向旧礼堂赶去。反复确认地址耽误了时间；抵达时，登记桌前已经没有其他客人。"]
+        ], "goEntrance");
+      } else if (action === "declineInvitation") {
+        try { localStorage.removeItem(SAVE_KEY); } catch (error) {}
+        game.mode = "declined";
+        render();
+      } else if (action === "collectionUnlock") {
+        game.mode = "collectionUnlock";
+        render();
+      } else if (action === "turnCollectionKey") {
+        openCollectionDrawer();
       } else if (action === "goEntrance") {
         setScene("entrance");
       } else if (action === "goBallroom") {
@@ -4658,7 +4895,7 @@
           ["狐狸面具客", "它以前总出现在我们的后台录像里。负责修道具的人不喜欢出镜。"],
           ["玩家", "那个人叫什么？"],
           ["狐狸面具客", "我不能确定。但这枚黑色星形纽扣……来自一套我曾经穿过的Cosplay服装。"],
-          ["狐狸面具客", "如果你一定要继续，就去任意屋找那套衣服。只是别太相信照片里站在镜头前的人。"],
+          ["狐狸面具客", "如果你一定要继续，就去任意屋找那套衣服。那里还有一张后台合照：修理道具的人没有入镜，只在画面边缘留下了一只正在缝纽扣的手。"],
           ["拾一", "第三扇门的图案亮了。我们找到的不是名字，而是一条通往名字的路。"]
         ], "chapter3Complete");
       } else if (action === "chapter3Complete") {
@@ -4783,9 +5020,9 @@
       if (!inspected) return false;
       if (game.scene === "entrance") return Boolean(game.flags.entranceTalkCleared);
       if (game.scene === "ballroom") return Boolean(game.flags.ballroomHostCleared && game.flags.ballroomFoxCleared);
-      if (game.scene === "echo") return Boolean(game.flags.hook1 && game.flags.echoTalkCleared);
+      if (game.scene === "echo") return Boolean(game.flags.hook1 && game.flags.mirrorLightRevealed && game.flags.echoTalkCleared);
       if (game.scene === "collection") {
-        return Boolean(game.flags.hook2 && game.flags.repaired && game.flags.melodyMatched && game.flags.collectionLabelCleared && game.flags.collectionTalkCleared);
+        return Boolean(game.flags.hook2 && game.flags.collectionDrawerOpened && game.flags.repaired && game.flags.melodyMatched && game.flags.collectionLabelCleared && game.flags.collectionTalkCleared);
       }
       if (game.scene === "anyHouse") return Boolean(game.flags.hook3 && game.flags.costumeMatched && game.flags.anyHouseLedgerCleared && game.flags.anyHouseFoxCleared);
       if (game.scene === "kitchen") return Boolean(game.flags.hook4 && game.flags.handwritingMatched && game.flags.kitchenAdminCleared && game.flags.kitchenShiyiCleared);
@@ -4795,7 +5032,10 @@
 
     function progressionHint() {
       const scene = sceneState();
-      const pendingObjects = Object.keys(scene.objects || {}).filter(function(key) { return !sceneInspected(key); });
+      if (game.scene === "echo" && game.evidence.includes("mirrorMark") && game.evidence.includes("candle") && !game.flags.mirrorLightRevealed) {
+        return "关联线索 · 根据烛台底座的镜位图，从四角星起点重建九面镜光路";
+      }
+      const pendingObjects = (scene.required || Object.keys(scene.objects || {})).filter(function(key) { return !sceneInspected(key); });
       if (pendingObjects.length) return "调查模式 · 移动放大镜，调查黄色区域（还剩 " + pendingObjects.length + " 处）";
       if (game.scene === "collection" && !game.flags.repaired) return "关联线索 · 打开证物栏，用钝化小刀与金属细针修复旧收音机";
       if (game.scene === "collection" && !game.flags.melodyMatched) return "关联线索 · 在证物栏对比修复后的收音机与十七秒录音";
@@ -4804,7 +5044,7 @@
       const hints = {
         entrance: "线索不足 · 与门卫交谈，并把无名面具出示给他",
         ballroom: "继续问话 · 分别向主持人与狐狸面具客出示相关证物",
-        echo: "录音已经取得 · 向管理员出示十七秒录音，追问钥匙的声音",
+        echo: "光路已经开启录音机 · 向管理员出示十七秒录音，追问钥匙的声音",
         collection: "关联证物成立 · 向管理员出示维修标签与旋律对照",
         anyHouse: "两个证人都在隐瞒 · 分别出示入住登记与服装比对",
         kitchen: "身份链只差口供 · 向管理员和拾一出示照片、车票与笔迹",
@@ -5081,6 +5321,9 @@
     }
 
     function renderAssociations() {
+      const canRevealMirror = game.evidence.includes("mirrorMark") &&
+        game.evidence.includes("candle") &&
+        !game.flags.mirrorLightRevealed;
       const canRepair = game.evidence.includes("brokenRadio") &&
         game.evidence.includes("tapedKnife") &&
         game.evidence.includes("metalPin") &&
@@ -5095,10 +5338,11 @@
         game.evidence.includes("visitorLedger") &&
         game.evidence.includes("recipeCard") &&
         !game.flags.handwritingMatched;
-      if (!canRepair && !canCompare && !canMatchCostume && !canCompareHandwriting) {
+      if (!canRevealMirror && !canRepair && !canCompare && !canMatchCostume && !canCompareHandwriting) {
         return '<div class="association-zone"><h3>线索对照</h3><p>取得能够互相解释的证物后，这里会出现新的推理操作。</p></div>';
       }
       return '<div class="association-zone"><h3>发现可以尝试的关联</h3><p>关联不会凭空合成物品，而是执行明确的检查或对照操作。</p>' +
+        (canRevealMirror ? '<button class="association-button" data-action="reveal-mirror-light">将烛台放到四角星起点，根据底座的一至九号镜位图重建光路</button>' : '') +
         (canRepair ? '<button class="association-button" data-action="repair-radio">用小刀打开后盖，并以金属细针替代缺失连杆销</button>' : '') +
         (canCompare ? '<button class="association-button" data-action="compare-melody">依次播放收音机与十七秒录音，对照旋律</button>' : '') +
         (canMatchCostume ? '<button class="association-button" data-action="match-costume">把黑色星形纽扣放入Cosplay服装肩部缺口，比对线孔与磨损</button>' : '') +
@@ -5222,7 +5466,7 @@
       if (game.mode !== "chapter") return "";
       const data = {
         1: ["第一章完成", "最后一个签名的人", "你接受了三年前留下的失主委托。拾一从黑色面具中醒来，四个记忆房间正式开放。", "进入第二章"],
-        2: ["第二章完成", "镜中的十七秒", "第一张记忆卡解锁了三年前的录音。未知人物提到一台旧收音机，背景里还有钥匙声。", "进入第三章"],
+        2: ["第二章完成", "镜中的十七秒", "烛台底座给出九面镜子的顺序，定向光路解开了录音机的光敏锁。第一张记忆卡与蜡烛形钥匙也已分别收入证物簿。", "进入第三章"],
         3: ["第三章完成", "不会唱完的收音机", "收音机旋律与回音录音一致，维修标签残留姓氏“林”。狐狸面具客又把线索指向了一套Cosplay服装。", "进入第四章"],
         4: ["第四章完成", "不存在的访客", "黑色星形纽扣与Cosplay服装的缺口完全吻合。入住登记则记录着失主借虚构人物看清自己的方式。", "进入第五章"],
         5: ["第五章完成", "没有人入镜的晚餐", "做菜照片、旅行票与三处一致笔迹补齐了四个房间。所有物品都指向一个总把自己留在镜头外的人。", "进入暗廊"],
@@ -5289,23 +5533,58 @@
       if (game.mode !== "alias") return "";
       return '<div class="alias-backdrop"><section class="alias-card" role="dialog" aria-modal="true" aria-label="登记代号">' +
         '<header class="alias-header"><h2>今晚的称呼</h2></header>' +
-        '<div class="alias-body"><p class="alias-question">如果今晚不用真实姓名，你希望别人怎样称呼你？</p>' +
-        '<p class="alias-note">可以是昵称、角色名，或你想成为的样子。真实姓名仍由你写在名牌背面并亲手封存；当前回答只保存在本机存档。</p>' +
+        '<div class="alias-body"><p class="alias-question">玩家：代号可以写什么？</p>' +
+        '<p class="alias-note"><strong>门卫：</strong>可以是你心中的英雄，可以是你想成为的任何人，甚至一种物种。只要今晚有人这样叫你时，你愿意回头。真实姓名仍写在名牌背面，由你亲手封存。</p>' +
         '<input class="alias-input" data-alias-input maxlength="18" value="' + escapeAttribute(game.aliasText) + '" placeholder="写下一个今晚使用的代号">' +
         '<div class="alias-actions"><button class="alias-cancel" data-action="cancel-alias">返回调查</button><button class="alias-submit" data-action="submit-alias"' + (game.aliasText.trim() ? '' : ' disabled') + '>写上代号并封存姓名</button></div></div>' +
       '</section></div>';
     }
 
+    function renderInvitationOpen() {
+      if (game.mode !== "invitationOpen") return "";
+      return '<div class="modal-backdrop story-choice-backdrop"><section class="story-choice-card invitation-open-card" role="dialog" aria-modal="true" aria-label="打开无名请柬">' +
+        '<div class="story-object">' + evidenceIcon("invitation", "story-object-icon") + '<span class="wax-seal" aria-hidden="true">✦</span></div>' +
+        '<small>THE SEALED INVITATION</small><h2>信封仍然封着</h2>' +
+        '<p>四角星火漆没有被破坏。只有你亲手打开，才能知道它为什么会从门缝来到这里。</p>' +
+        '<button class="story-primary-button" data-action="openInvitation">按住火漆，拆开请柬</button>' +
+      '</section></div>';
+    }
+
+    function renderAttendanceChoice() {
+      if (game.mode !== "attendanceChoice") return "";
+      return '<div class="modal-backdrop story-choice-backdrop"><section class="story-choice-card attendance-card" role="dialog" aria-modal="true" aria-label="是否参加假面舞会">' +
+        '<small>11:07 PM · THE DECISION</small><h2>要去旧礼堂吗？</h2>' +
+        '<p>赴约，你会暂时封存姓名，进入一场来历不明的假面舞会；留下，这封没有署名的委托也许永远不会得到回答。</p>' +
+        '<div class="story-choice-actions"><button class="story-primary-button" data-action="acceptInvitation"><strong>参加</strong><span>换上礼服，前往旧礼堂</span></button>' +
+        '<button class="story-secondary-button" data-action="declineInvitation"><strong>不参加</strong><span>把请柬留在桌上，结束今晚的故事</span></button></div>' +
+      '</section></div>';
+    }
+
+    function renderDeclinedInvitation() {
+      if (game.mode !== "declined") return "";
+      return '<div class="modal-backdrop story-choice-backdrop"><section class="story-choice-card declined-card" role="dialog" aria-modal="true" aria-label="未参加舞会">' +
+        '<small>THE NIGHT ENDS HERE</small><h2>你没有赴约</h2>' +
+        '<p>你把信封放回桌上。午夜过去，礼堂的灯一盏盏熄灭；今晚，没人替你做另一种选择。</p>' +
+        '<button class="story-secondary-button" data-action="restart">退出并返回标题</button>' +
+      '</section></div>';
+    }
+
+    function renderCollectionUnlock() {
+      if (game.mode !== "collectionUnlock") return "";
+      return '<div class="modal-backdrop story-choice-backdrop"><section class="story-choice-card collection-unlock-card" role="dialog" aria-modal="true" aria-label="用收藏钥匙打开隐藏抽屉">' +
+        '<div class="lock-interaction"><div class="jar-lock" aria-hidden="true"><span></span></div>' + evidenceIcon("collectionKey", "unlock-key-icon") + '</div>' +
+        '<small>RESONANCE LOCK · MANUAL RELEASE</small><h2>玻璃罐形锁孔</h2>' +
+        '<p>钥匙已经生成，但抽屉还没有打开。把钥匙对准锁孔，再亲手转动。</p>' +
+        '<button class="story-primary-button" data-action="turnCollectionKey">插入钥匙并转动</button>' +
+      '</section></div>';
+    }
+
     function renderEnding() {
       return '<section class="game-shell"><div class="end-panel"><div class="end-card">' +
-        '<span class="chapter-kicker">PROTOTYPE COMPLETE</span>' +
-        '<h1>第〇夜 · 完</h1>' +
-        '<p>你没有从单一物品上猜出一个名字，而是让请柬、镜框、收音机、Cosplay服装、入住登记、菜谱与四道共鸣锁彼此作证。最后被找回的不是一份简历，而是名字下面那些愿意承认的选择。</p>' +
-        '<div class="end-clues">' +
-          '<div class="end-clue"><strong>物证链</strong>四角星标记、相同旋律、吻合纽扣与一致笔迹连接了四个房间。</div>' +
-          '<div class="end-clue"><strong>身份链</strong>四道共鸣锁只回应玩家的真实回答，记忆卡又恰好填入无名面具。</div>' +
-          '<div class="end-clue"><strong>最后结论</strong>名字证明你来过；你愿意珍惜、想象与分享的事，才构成“我是谁”的初稿。</div>' +
-        '</div>' +
+        '<span class="chapter-kicker">THE NAME RETURNED</span>' +
+        '<p class="end-question">封印姓名的我们，会失去什么？</p>' +
+        '<h1>失去束缚，获得新生。</h1>' +
+        '<p>姓名被原样归还。被看见的那些选择，也不必再藏回面具下面。</p>' +
         '<button class="start-button" data-action="restart">从请柬重新开始</button>' +
       '</div></div>' + renderAudioControls() + '</section>';
     }
@@ -5316,11 +5595,10 @@
         '<div class="scene-bg" style="background-image:url(' + assets.invitation + ')"></div>' +
         renderAudioControls() +
         '<div class="title-panel">' +
-          '<span class="title-case">CASE 00 · INTERACTIVE PROTOTYPE</span>' +
-          '<h1>面具之下<small>失名之夜 · 完整流程雏形</small></h1>' +
-          '<p>调查四个房间，记录证物，通过纽扣、旋律与笔迹建立跨房线索；最后在暗廊完成身份推理，并亲手取回封存的名字。</p>' +
-          '<div class="title-actions">' + continueButton + '<button class="start-button" data-action="start">打开请柬</button></div>' +
-          '<span class="title-meta">静态 HTML · 无数据库 · 完整八幕 · 约 18–25 分钟</span>' +
+          '<span class="title-case">LOST NAME NIGHT</span>' +
+          '<h1>面具之下</h1>' +
+          '<p>封印姓名的我们，会失去什么？</p>' +
+          '<div class="title-actions">' + continueButton + '<button class="start-button" data-action="start">开始故事</button></div>' +
         '</div>' +
       '</section>';
     }
@@ -5341,7 +5619,7 @@
       if (game.mode === "title") return renderTitle();
       if (game.mode === "ending") return renderEnding();
       const scene = sceneState();
-      const sceneAsset = game.scene === "collection" && game.flags.hook2
+      const sceneAsset = game.scene === "collection" && game.flags.collectionDrawerOpened
         ? assets.collectionOpen
         : game.scene === "kitchen" && game.flags.hook4
           ? assets.kitchenOpen
@@ -5371,8 +5649,12 @@
         renderEvidenceRail() +
         renderTalkMenu() +
         renderPresentationMenu() +
+        renderInvitationOpen() +
+        renderAttendanceChoice() +
+        renderDeclinedInvitation() +
         renderAliasPrompt() +
         renderHook() +
+        renderCollectionUnlock() +
         renderDeduction() +
         renderChapterModal() +
         renderChapterMap() +
@@ -5441,6 +5723,7 @@
       else if (action === "submit-alias") submitAlias();
       else if (action === "cancel-alias") runAction("investigate");
       else if (action === "submit-hook") submitHook();
+      else if (action === "reveal-mirror-light") revealMirrorLight();
       else if (action === "repair-radio") repairRadio();
       else if (action === "compare-melody") compareMelody();
       else if (action === "match-costume") matchCostume();
